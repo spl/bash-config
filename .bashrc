@@ -47,6 +47,14 @@ function _exit()
 }
 trap _exit EXIT
 
+# Prepend directory to path if it exists
+function prepend_to_path()
+{
+    if [[ -d "${1}" ]]; then
+        PATH=${1}:${PATH}
+    fi
+}
+
 # Append directory to path if it exists
 function append_to_path()
 {
@@ -242,7 +250,7 @@ append_to_path ${LHS2TEX_PATH}
 
 # local cabal -- Test for directory
 CABAL_PATH=${HOME}/.cabal/bin
-append_to_path ${CABAL_PATH}
+prepend_to_path ${CABAL_PATH}
 
 # local agda -- Test for directory
 AGDA_PATH=/usr/local/agda-darcs/bin
