@@ -190,28 +190,15 @@ alias grep='grep -I --color'
 alias bc='bc -l'
 
 #-----------------------------------------------------------------------------
-# Common private directories
+# MacPorts
 #-----------------------------------------------------------------------------
 
-# Set PATH to include my private bin if it exists
-[[ -d "${HOME}/bin" ]] && PATH=${HOME}/bin:${PATH}
-
-# Set MANPATH to include my private man if it exists
-[[ -d "${HOME}/man" ]] && MANPATH=${HOME}/man:${MANPATH}
-
-# Set INFOPATH to include my private info if it exists
-[[ -d "${HOME}/info" ]] && INFOPATH=${HOME}/info:${INFOPATH}
-
-#-----------------------------------------------------------------------------
-# Site-specific
-#-----------------------------------------------------------------------------
-
-# This is where I put stuff specific to each site that uses this .bashrc.
-
-# Set up paths for MacPorts (http://guide.macports.org/#installing.shell)
-[[ -d "/opt/local/bin" ]] && PATH=${PATH}:/opt/local/bin
-[[ -d "/opt/local/sbin" ]] && PATH=${PATH}:/opt/local/sbin
-[[ -d "/opt/local/share/man" ]] && MANPATH=${MANPATH}:/opt/local/share/man
+# According to (http://guide.macports.org/#installing.shell).
+# These should come before normal paths for some apps. There was a problem with
+# git-svn and Perl paths.
+[[ -d "/opt/local/bin" ]] && PATH=/opt/local/bin:${PATH}
+[[ -d "/opt/local/sbin" ]] && PATH=/opt/local/sbin:${PATH}
+[[ -d "/opt/local/share/man" ]] && MANPATH=/opt/local/share/man:${MANPATH}
 
 #-----------------------------------------------------------------------------
 # Application-specific
@@ -253,8 +240,21 @@ CABAL_PATH=${HOME}/.cabal/bin
 prepend_to_path ${CABAL_PATH}
 
 # local agda -- Test for directory
-AGDA_PATH=/usr/local/agda-darcs/bin
+AGDA_PATH=/Users/leather/Software/agda/installed/bin
 append_to_path ${AGDA_PATH}
+
+#-----------------------------------------------------------------------------
+# Common private directories (should be almost last)
+#-----------------------------------------------------------------------------
+
+# Set PATH to include my private bin if it exists
+[[ -d "${HOME}/bin" ]] && PATH=${HOME}/bin:${PATH}
+
+# Set MANPATH to include my private man if it exists
+[[ -d "${HOME}/man" ]] && MANPATH=${HOME}/man:${MANPATH}
+
+# Set INFOPATH to include my private info if it exists
+[[ -d "${HOME}/info" ]] && INFOPATH=${HOME}/info:${INFOPATH}
 
 #-----------------------------------------------------------------------------
 # Final exports
