@@ -207,6 +207,10 @@ alias bc='bc -l'
 # These are specific to certain applications I run. I generally want them only
 # at certain sites and not polluting the environment at the others.
 
+# Java 1.6
+alias java16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java'
+alias javac16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/javac'
+
 # GHC -- Test for directory. This may be replaced with something better later.
 GHC_PATH_VAL=/usr/local/ghc-head/bin
 GHC_PATH_BEAN=/usr/local/ghc-6.8.2-ppc-tiger/bin
