@@ -1,0 +1,17 @@
+[user]
+	name = Sean Leather
+	email = leather@cs.uu.nl
+
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+
+[alias]
+	st = status
+	di = diff
+	co = checkout
+	ci = commit
+	br = branch
+	sta = stash
+
