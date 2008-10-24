@@ -63,6 +63,14 @@ function append_to_path()
     fi
 }
 
+# Source script if it exists
+function source_script()
+{
+    if [[ -e "${1}" ]]; then
+        source ${1}
+    fi
+}
+
 # Set ${1} to the first valid directory from the argument list. If none exists,
 # set ${1} to "". The first argument should be a reference, not a variable. In
 # other words, use VALID_DIR instead of ${VALID_DIR}. The remaining arguments
@@ -246,6 +254,13 @@ prepend_to_path ${CABAL_PATH}
 # local agda -- Test for directory
 AGDA_PATH=/Users/leather/Software/agda/installed/bin
 append_to_path ${AGDA_PATH}
+
+#-----------------------------------------------------------------------------
+# Nix
+#-----------------------------------------------------------------------------
+
+# Set up the Nix environment and prepend the paths
+source_script /nix/etc/profile.d/nix.sh
 
 #-----------------------------------------------------------------------------
 # Common private directories (should be almost last)
