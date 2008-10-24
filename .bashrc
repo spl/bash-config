@@ -198,6 +198,14 @@ alias grep='grep -I --color'
 alias bc='bc -l'
 
 #-----------------------------------------------------------------------------
+# Mac OS
+#-----------------------------------------------------------------------------
+
+# Tell 'tar' (and others?) to not include extended attributes when copying.
+# This removes the annoying '._blah' file for every 'blah' file.
+export COPY_EXTENDED_ATTRIBUTES_DISABLE=true
+
+#-----------------------------------------------------------------------------
 # MacPorts
 #-----------------------------------------------------------------------------
 
