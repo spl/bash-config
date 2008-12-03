@@ -197,6 +197,8 @@ alias grep='grep -I --color'
 # Use floating point math
 alias bc='bc -l'
 
+alias mkdircd='source ${HOME}/.source/mkdircd'
+
 #-----------------------------------------------------------------------------
 # Mac OS
 #-----------------------------------------------------------------------------
