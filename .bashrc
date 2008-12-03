@@ -13,6 +13,12 @@ if [[ $- != *i* ]]; then
 fi
 
 #-----------------------------------------------------------------------------
+# CONSTANTS
+#-----------------------------------------------------------------------------
+
+MY_SOURCE_DIR=${HOME}/.source
+
+#-----------------------------------------------------------------------------
 # Colors
 #-----------------------------------------------------------------------------
 
@@ -197,7 +203,7 @@ alias grep='grep -I --color'
 # Use floating point math
 alias bc='bc -l'
 
-alias mkdircd='source ${HOME}/.source/mkdircd'
+alias mkdircd='source ${MY_SOURCE_DIR}/mkdircd'
 
 #-----------------------------------------------------------------------------
 # Mac OS
@@ -229,11 +235,11 @@ export COPY_EXTENDED_ATTRIBUTES_DISABLE=true
 alias java16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java'
 alias javac16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/javac'
 
-# GHC -- Test for directory. This may be replaced with something better later.
-GHC_PATH_VAL=/usr/local/ghc-head/bin
+# GHC
+source ${MY_SOURCE_DIR}/ghc-init
+# TODO: Change Bean to use the above for GHC
 GHC_PATH_BEAN=/usr/local/ghc-6.8.2-ppc-tiger/bin
-first_valid_dir GHC_PATH ${GHC_PATH_VAL} ${GHC_PATH_BEAN}
-append_to_path ${GHC_PATH}
+append_to_path ${GHC_PATH_BEAN}
 
 # Darcs -- Test for directory
 DARCS_PATH_VAL=/usr/local/darcs-1.0.9rc2-i386-tiger/bin
