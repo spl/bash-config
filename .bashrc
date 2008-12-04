@@ -203,7 +203,9 @@ alias grep='grep -I --color'
 # Use floating point math
 alias bc='bc -l'
 
+# Sourced commands
 alias mkdircd='source ${MY_SOURCE_DIR}/mkdircd'
+alias ghc-config='source ${MY_SOURCE_DIR}/ghc-config'
 
 #-----------------------------------------------------------------------------
 # Mac OS
