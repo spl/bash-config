@@ -22,7 +22,7 @@ remote-repo-cache: /Users/leather/.cabal/packages
 -- library-for-ghci: True
 -- split-objs: False
 -- executable-stripping: True
--- user-install: True
+user-install: False
 -- package-db:
 -- flags:
 -- extra-include-dirs:
@@ -44,7 +44,7 @@ install-dirs user
   -- haddockdir: $htmldir
 
 install-dirs global
-  -- prefix: /usr/local
+  prefix: /opt/ghc/6.10.1
   -- bindir: $prefix/bin
   -- libdir: $prefix/lib
   -- libsubdir: $pkgid/$compiler
