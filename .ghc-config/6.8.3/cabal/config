@@ -1,0 +1,4 @@
+compiler: GHC
+repos: hackage.haskell.org:http://hackage.haskell.org/packages/archive
+cachedir: "/Users/leather/.cabal/packages"
+user-install: true
