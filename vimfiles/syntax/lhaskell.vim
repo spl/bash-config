@@ -4,7 +4,7 @@
 "			\begin{code} \end{code} blocks
 " Maintainer:		Haskell Cafe mailinglist <haskell-cafe@haskell.org>
 " Original Author:	Arthur van Leeuwen <arthurvl@cs.uu.nl>
-" Last Change:		Jan 05, 2008 by Kalman Noel
+" Last Change:		2008 Jul 01
 " Version:		1.02
 "
 " Thanks to Ian Lynagh for thoughtful comments on initial versions and
@@ -29,8 +29,9 @@
 " 2004 February 20: Cleaned up the guessing and overriding a bit
 " 2004 February 23: Cleaned up syntax highlighting for \begin{code} and
 "		    \end{code}, added some clarification to the attributions
-" 2008 January 05:  Fixed broken highlighting when some totally common TeX 
-"                   environments or commands are used (document, section, ...)
+" 2008 July 1:      Removed % from guess list, as it totally breaks  plain
+"		    text markup guessing
+"
 
 
 " For version 5.x: Clear all syntax items
@@ -72,14 +73,14 @@ call cursor(1,1)
 "   - \begin{env}       (for env != code)
 "   - \part, \chapter, \section, \subsection, \subsubsection, etc
 if b:lhs_markup == "unknown"
-    if search('%\|\\documentclass\|\\begin{\(code}\)\@!\|\\\(sub\)*section\|\\chapter|\\part','W') != 0
+    if search('\\documentclass\|\\begin{\(code}\)\@!\|\\\(sub \)*section\|\\chapter|\\part','W') != 0
 	let b:lhs_markup = "tex"
     else
 	let b:lhs_markup = "plain"
     endif
 endif
 
-" If user wants us to highlight TeX syntax, read it.
+" If user wants us to highlight TeX syntax or guess thinks it's TeX,  read it.
 if b:lhs_markup == "tex"
     if version < 600
 	source <sfile>:p:h/tex.vim
@@ -100,12 +101,8 @@ else
     syntax include @haskellTop syntax/haskell.vim
 endif
 
-
-" Where Haskell is nested within TeX
-syntax cluster lhstex contains=tex.*Zone,texAbstract
-
-syntax region lhsHaskellBirdTrack start="^>" end="\%(^[^>]\)\@=" contains=@haskellTop,lhsBirdTrack containedIn=@lhstex
-syntax region lhsHaskellBeginEndBlock start="^\\begin{code}\s*$" matchgroup=NONE end="\%(^\\end{code}.*$\)\@=" contains=@haskellTop,@beginCode containedIn=@lhstex
+syntax region lhsHaskellBirdTrack start="^>" end="\%(^[^>]\)\@=" contains=@haskellTop,lhsBirdTrack
+syntax region lhsHaskellBeginEndBlock start="^\\begin{code}\s*$" matchgroup=NONE end="\%(^\\end{code}.*$\)\@=" contains=@haskellTop,@beginCode
 
 syntax match lhsBirdTrack "^>" contained
 
