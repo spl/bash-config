@@ -67,6 +67,10 @@ if has("win32")
   endif
 endif
 
+" Configure browser for haskell_doc.vim
+let g:haddock_browser = "open"
+let g:haddock_browser_callformat = "%s %s"
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Macros
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -107,6 +111,9 @@ au BufNewFile,BufRead *.yacc            setf yacc
 
 " Generic Haskell
 au BufNewFile,BufRead *.ghs             setf haskell
+
+" Set ghc as compiler for Haskell files
+au BufEnter *.hs                        compiler ghc
 
 augroup END
 
