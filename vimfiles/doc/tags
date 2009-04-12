@@ -23,6 +23,8 @@ _opt	haskellmode.txt	/*_opt*
 _si	haskellmode.txt	/*_si*
 _t	haskellmode.txt	/*_t*
 compiler-ghc	haskellmode.txt	/*compiler-ghc*
+cs	surround.txt	/*cs*
+ds	surround.txt	/*ds*
 g:ghc	haskellmode.txt	/*g:ghc*
 g:haddock_browser	haskellmode.txt	/*g:haddock_browser*
 g:haddock_browser_callformat	haskellmode.txt	/*g:haddock_browser_callformat*
@@ -53,3 +55,18 @@ haskellmode-settings-main	haskellmode.txt	/*haskellmode-settings-main*
 haskellmode-user-completion	haskellmode.txt	/*haskellmode-user-completion*
 haskellmode.txt	haskellmode.txt	/*haskellmode.txt*
 hpaste	haskellmode.txt	/*hpaste*
+i_CTRL-G_S	surround.txt	/*i_CTRL-G_S*
+i_CTRL-G_s	surround.txt	/*i_CTRL-G_s*
+surround	surround.txt	/*surround*
+surround-author	surround.txt	/*surround-author*
+surround-customizing	surround.txt	/*surround-customizing*
+surround-issues	surround.txt	/*surround-issues*
+surround-mappings	surround.txt	/*surround-mappings*
+surround-replacements	surround.txt	/*surround-replacements*
+surround-targets	surround.txt	/*surround-targets*
+surround.txt	surround.txt	/*surround.txt*
+vs	surround.txt	/*vs*
+yS	surround.txt	/*yS*
+ySS	surround.txt	/*ySS*
+ys	surround.txt	/*ys*
+yss	surround.txt	/*yss*
