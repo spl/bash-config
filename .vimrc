@@ -3,6 +3,9 @@
 " This is Vim, not vi
 set nocompatible
 
+" Disable pseudo-tty
+set noguipty
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Settings
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -69,7 +72,7 @@ endif
 
 " Configure browser for haskell_doc.vim
 let g:haddock_browser = "open"
-let g:haddock_browser_callformat = "%s %s"
+let g:haddock_browser_callformat = "%s file://%s"
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Macros
@@ -111,6 +114,9 @@ au BufNewFile,BufRead *.yacc            setf yacc
 
 " Generic Haskell
 au BufNewFile,BufRead *.ghs             setf haskell
+
+" Literate Agda to Literate Haskell
+au BufNewFile,BufRead *.lagda           setf lhaskell
 
 " Set ghc as compiler for Haskell files
 au BufEnter *.hs                        compiler ghc
