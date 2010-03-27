@@ -226,6 +226,8 @@ export COPY_EXTENDED_ATTRIBUTES_DISABLE=true
 [[ -d "/opt/local/sbin" ]] && PATH=/opt/local/sbin:${PATH}
 [[ -d "/opt/local/share/man" ]] && MANPATH=/opt/local/share/man:${MANPATH}
 
+prepend_to_path "/usr/texbin"
+
 #-----------------------------------------------------------------------------
 # Application-specific
 #-----------------------------------------------------------------------------
@@ -243,35 +245,9 @@ source ${MY_SOURCE_DIR}/ghc-init
 GHC_PATH_BEAN=/usr/local/ghc-6.8.2-ppc-tiger/bin
 append_to_path ${GHC_PATH_BEAN}
 
-# Darcs -- Test for directory
-DARCS_PATH_VAL=/usr/local/darcs-1.0.9rc2-i386-tiger/bin
-DARCS_PATH_BEAN=/usr/local/darcs-1.0.9rc2-ppc-tiger/bin
-first_valid_dir DARCS_PATH ${DARCS_PATH_BEAN} ${DARCS_PATH_VAL}
-append_to_path ${DARCS_PATH}
-
-# Happy -- Test for directory
-HAPPY_PATH_DARCS=/usr/local/happy-darcs/bin
-HAPPY_PATH_1_17=/usr/local/happy-1.17/bin
-first_valid_dir HAPPY_PATH ${HAPPY_PATH_DARCS} ${HAPPY_PATH_1_17}
-append_to_path ${HAPPY_PATH}
-
-# Alex -- Test for directory
-ALEX_PATH_DARCS=/usr/local/alex-darcs/bin
-ALEX_PATH_2_2=/usr/local/alex-2.2/bin
-first_valid_dir ALEX_PATH ${ALEX_PATH_DARCS} ${ALEX_PATH_2_2}
-append_to_path ${ALEX_PATH}
-
-# lhs2tex -- Test for directory
-LHS2TEX_PATH=/usr/local/lhs2tex-1.13/bin
-append_to_path ${LHS2TEX_PATH}
-
 # local cabal -- Test for directory
 CABAL_PATH=${HOME}/.cabal/bin
 prepend_to_path ${CABAL_PATH}
-
-# local agda -- Test for directory
-AGDA_PATH=/Users/leather/Software/agda/installed/bin
-append_to_path ${AGDA_PATH}
 
 #-----------------------------------------------------------------------------
 # Nix
