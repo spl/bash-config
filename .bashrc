@@ -222,11 +222,9 @@ export COPY_EXTENDED_ATTRIBUTES_DISABLE=true
 # According to (http://guide.macports.org/#installing.shell).
 # These should come before normal paths for some apps. There was a problem with
 # git-svn and Perl paths.
-[[ -d "/opt/local/bin" ]] && PATH=/opt/local/bin:${PATH}
-[[ -d "/opt/local/sbin" ]] && PATH=/opt/local/sbin:${PATH}
-[[ -d "/opt/local/share/man" ]] && MANPATH=/opt/local/share/man:${MANPATH}
-
-prepend_to_path "/usr/texbin"
+prepend_to_path "/opt/local/bin"
+prepend_to_path "/opt/local/sbin"
+prepend_to_path "/opt/local/share/man"
 
 #-----------------------------------------------------------------------------
 # Application-specific
@@ -235,9 +233,16 @@ prepend_to_path "/usr/texbin"
 # These are specific to certain applications I run. I generally want them only
 # at certain sites and not polluting the environment at the others.
 
-# Java 1.6
-alias java16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java'
-alias javac16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/javac'
+# Java 1.6 for Mac
+case ${OSTYPE} in
+    darwin*)
+        alias java16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java'
+        alias javac16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/javac'
+        ;;
+esac
+
+# TeX and LaTeX
+prepend_to_path "/usr/texbin"
 
 # GHC
 source ${MY_SOURCE_DIR}/ghc-init
@@ -245,9 +250,8 @@ source ${MY_SOURCE_DIR}/ghc-init
 GHC_PATH_BEAN=/usr/local/ghc-6.8.2-ppc-tiger/bin
 append_to_path ${GHC_PATH_BEAN}
 
-# local cabal -- Test for directory
-CABAL_PATH=${HOME}/.cabal/bin
-prepend_to_path ${CABAL_PATH}
+# Cabalized apps
+prepend_to_path ${HOME}/.cabal/bin
 
 #-----------------------------------------------------------------------------
 # Nix
