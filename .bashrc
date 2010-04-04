@@ -1,4 +1,4 @@
-# ~/.bashrc:
+# ~/.bashrc: executed by bash(1) for non-login shells.
 
 #-----------------------------------------------------------------------------
 # Test for an interactive shell
@@ -127,6 +127,8 @@ esac
 
 # Don't put duplicate lines in the history
 export HISTCONTROL=ignoredups
+# Erase previous entries of command
+export HISTCONTROL=erasedups
 
 # Ignore some controlling instructions
 export HISTIGNORE="[   ]*:&:bg:fg:exit"
@@ -205,7 +207,6 @@ alias bc='bc -l'
 
 # Sourced commands
 alias mkdircd='source ${MY_SOURCE_DIR}/mkdircd'
-alias ghc-config='source ${MY_SOURCE_DIR}/ghc-config'
 
 #-----------------------------------------------------------------------------
 # Mac OS
@@ -245,10 +246,11 @@ esac
 prepend_to_path "/usr/texbin"
 
 # GHC
-source ${MY_SOURCE_DIR}/ghc-init
+append_to_path "/opt/ghc/bin"
+append_to_path "$HOME/.ghc-config/ghc/bin"
+ghc-config -i
 # TODO: Change Bean to use the above for GHC
-GHC_PATH_BEAN=/usr/local/ghc-6.8.2-ppc-tiger/bin
-append_to_path ${GHC_PATH_BEAN}
+append_to_path "/usr/local/ghc-6.8.2-ppc-tiger/bin"
 
 # Cabalized apps
 prepend_to_path ${HOME}/.cabal/bin
