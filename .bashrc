@@ -248,7 +248,7 @@ prepend_to_path "/usr/texbin"
 # GHC
 append_to_path "/opt/ghc/bin"
 append_to_path "$HOME/.ghc-config/ghc/bin"
-ghc-config -i
+[[ -x "/opt/ghc/bin" ]] && /opt/ghc/bin/ghc-config -i
 # TODO: Change Bean to use the above for GHC
 append_to_path "/usr/local/ghc-6.8.2-ppc-tiger/bin"
 
