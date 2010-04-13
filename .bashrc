@@ -183,12 +183,13 @@ export HISTIGNORE="[   ]*:&:bg:fg:exit"
 # - color
 case ${OSTYPE} in
     linux-gnu|cygwin)
-        alias ls='ls -aFh --color=auto'
+        alias ls='ls -Fh --color=auto'
         ;;
     darwin*)
-        alias ls='ls -aFhG'
+        alias ls='ls -FhG'
         ;;
 esac
+alias la='ls -a'
 alias ll='ls -l'
 
 # Preserve mode, ownership, and timestamps
