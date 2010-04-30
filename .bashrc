@@ -107,8 +107,19 @@ if [[ -f ~/.dir_colors ]]; then
 fi
 
 #-----------------------------------------------------------------------------
-# X terminal
+# Terminal
 #-----------------------------------------------------------------------------
+
+# For OpenBSD, change terminal in order to use colors in termcap(5).
+case ${OSTYPE} in
+    openbsd*)
+        case ${TERM} in
+            xterm*|rxvt*|Eterm|aterm|kterm|gnome)
+                TERM='xterm-xfree86'
+                ;;
+        esac
+        ;;
+esac
 
 # Change the window title of X terminals 
 case ${TERM} in
@@ -187,6 +198,9 @@ case ${OSTYPE} in
         ;;
     darwin*)
         alias ls='ls -FhG'
+        ;;
+    openbsd*)
+        alias ls='colorls -FhG'
         ;;
 esac
 alias la='ls -a'
