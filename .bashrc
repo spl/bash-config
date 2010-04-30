@@ -187,11 +187,11 @@ export HISTIGNORE="[   ]*:&:bg:fg:exit"
 # application.  To override the alias instruction use a \ before, ie
 # \rm will call the real rm not the alias.
 
-# List the files in the directory with these options:
+# ls with flags:
 # - show all (-a)
 # - classify (-F)
 # - human-readable sizes (-h)
-# - color
+# - color (-G)
 case ${OSTYPE} in
     linux-gnu|cygwin)
         alias ls='ls -Fh --color=auto'
@@ -203,6 +203,8 @@ case ${OSTYPE} in
         alias ls='colorls -FhG'
         ;;
 esac
+
+# Other ls aliases
 alias la='ls -a'
 alias ll='ls -l'
 
@@ -213,9 +215,17 @@ alias cp='cp -p'
 alias df='df -h'
 alias du='du -h'
 
-# Don't match binary files
-# Show match in color
-alias grep='grep -I --color'
+# grep with flags:
+# - don't match binary files (-I)
+# - color (--color)
+case ${OSTYPE} in
+    openbsd*)
+        alias grep='grep -I'
+        ;;
+    *)
+        alias grep='grep -I --color'
+        ;;
+esac
 
 # Use floating point math
 alias bc='bc -l'
