@@ -2,12 +2,12 @@
 UseVimball
 finish
 compiler/ghc.vim	[[[1
-470
+536
 
 " Vim Compiler File
 " Compiler:	GHC
 " Maintainer:	Claus Reinke <claus.reinke@talk21.com>
-" Last Change:	10/04/2009
+" Last Change:	22/06/2010
 "
 " part of haskell plugins: http://projects.haskell.org/haskellmode-vim
 
@@ -21,15 +21,7 @@ let current_compiler = "ghc"
 
 let s:scriptname = "ghc.vim"
 
-if (!exists("g:ghc") || !executable(g:ghc)) 
-  if !executable('ghc') 
-    echoerr s:scriptname.": can't find ghc. please set g:ghc, or extend $PATH"
-    finish
-  else
-    let g:ghc = 'ghc'
-  endif
-endif    
-let ghc_version = substitute(system(g:ghc . ' --numeric-version'),'\n','','')
+if !haskellmode#GHC() | finish | endif
 if (!exists("b:ghc_staticoptions"))
   let b:ghc_staticoptions = ''
 endif
@@ -91,7 +83,7 @@ endfunction
 map <LocalLeader>T :call GHC_ShowType(1)<cr>
 map <LocalLeader>t :call GHC_ShowType(0)<cr>
 function! GHC_ShowType(addTypeDecl)
-  let namsym   = Haskell_GetNameSymbol(getline('.'),col('.'),0)
+  let namsym   = haskellmode#GetNameSymbol(getline('.'),col('.'),0)
   if namsym==[]
     redraw
     echo 'no name/symbol under cursor!'
@@ -116,6 +108,10 @@ function! GHC_ShowType(addTypeDecl)
 endfunction
 
 " show type of identifier under mouse pointer in balloon
+" TODO: it isn't a good idea to tie potentially time-consuming tasks
+"       (querying GHCi for the types) to cursor movements (#14). Currently,
+"       we ask the user to call :GHCReload explicitly. Should there be an
+"       option to reenable the old implicit querying?
 if has("balloon_eval")
   set ballooneval
   set balloondelay=600
@@ -123,18 +119,29 @@ if has("balloon_eval")
   function! GHC_TypeBalloon()
     if exists("b:current_compiler") && b:current_compiler=="ghc" 
       let [line] = getbufline(v:beval_bufnr,v:beval_lnum)
-      let namsym = Haskell_GetNameSymbol(line,v:beval_col,0)
+      let namsym = haskellmode#GetNameSymbol(line,v:beval_col,0)
       if namsym==[]
         return ''
       endif
       let [start,symb,qual,unqual] = namsym
       let name  = qual=='' ? unqual : qual.'.'.unqual
       let pname = name " ( symb ? '('.name.')' : name )
-      silent call GHC_HaveTypes()
-      if has("balloon_multiline")
-        return (has_key(b:ghc_types,pname) ? split(b:ghc_types[pname],' -- ') : '') 
+      if b:ghc_types == {} 
+        redraw
+        echo "no type information (try :GHGReload)"
+      elseif (b:my_changedtick != b:changedtick)
+        redraw
+        echo "type information may be out of date (try :GHGReload)"
+      endif
+      " silent call GHC_HaveTypes()
+      if b:ghc_types!={}
+        if has("balloon_multiline")
+          return (has_key(b:ghc_types,pname) ? split(b:ghc_types[pname],' -- ') : '') 
+        else
+          return (has_key(b:ghc_types,pname) ? b:ghc_types[pname] : '') 
+        endif
       else
-        return (has_key(b:ghc_types,pname) ? b:ghc_types[pname] : '') 
+        return ''
       endif
     else
       return ''
@@ -144,7 +151,7 @@ endif
 
 map <LocalLeader>si :call GHC_ShowInfo()<cr>
 function! GHC_ShowInfo()
-  let namsym   = Haskell_GetNameSymbol(getline('.'),col('.'),0)
+  let namsym   = haskellmode#GetNameSymbol(getline('.'),col('.'),0)
   if namsym==[]
     redraw
     echo 'no name/symbol under cursor!'
@@ -183,31 +190,17 @@ endfunction
 
 command! GHCReload call GHC_BrowseAll()
 function! GHC_BrowseAll()
-  " let imports = Haskell_GatherImports()
+  " let imports = haskellmode#GatherImports()
   " let modules = keys(imports[0]) + keys(imports[1])
+  let b:my_changedtick = b:changedtick
   let imports = {} " no need for them at the moment
   let current = GHC_NameCurrent()
   let module = current==[] ? 'Main' : current[0]
-  if GHC_VersionGE([6,8,1])
+  if haskellmode#GHC_VersionGE([6,8,1])
     return GHC_BrowseBangStar(module)
   else
     return GHC_BrowseMultiple(imports,['*'.module])
   endif
-endfunction
-
-function! GHC_VersionGE(target)
-  let current = split(g:ghc_version, '\.' )
-  let target  = a:target
-  for i in current
-    if ((target==[]) || (i>target[0]))
-      return 1
-    elseif (i==target[0])
-      let target = target[1:]
-    else
-      return 0
-    endif
-  endfor
-  return 1
 endfunction
 
 function! GHC_NameCurrent()
@@ -248,7 +241,7 @@ endfunction
 
 function! GHC_Info(what)
   " call GHC_HaveTypes()
-  let output = system(g:ghc . ' ' . b:ghc_staticoptions . ' -v0 --interactive ' . expand("%"), ":i ". a:what)
+  let output = system(g:ghc . ' ' . b:ghc_staticoptions . ' -v0 --interactive ' . expand("%"), ":info ". a:what)
   return output
 endfunction
 
@@ -360,7 +353,7 @@ let s:ghc_templates = ["module _ () where","class _ where","class _ => _ where",
 " use ghci :browse index for insert mode omnicompletion (CTRL-X CTRL-O)
 function! GHC_CompleteImports(findstart, base)
   if a:findstart 
-    let namsym   = Haskell_GetNameSymbol(getline('.'),col('.'),-1) " insert-mode: we're 1 beyond the text
+    let namsym   = haskellmode#GetNameSymbol(getline('.'),col('.'),-1) " insert-mode: we're 1 beyond the text
     if namsym==[]
       redraw
       echo 'no name/symbol under cursor!'
@@ -381,7 +374,16 @@ function! GHC_CompleteImports(findstart, base)
   endif
 endfunction
 set omnifunc=GHC_CompleteImports
-set completeopt=menu,menuone,longest
+"
+" Vim's default completeopt is menu,preview
+" you probably want at least menu, or you won't see alternatives listed
+" setlocal completeopt+=menu
+
+" menuone is useful, but other haskellmode menus will try to follow your choice here in future
+" setlocal completeopt+=menuone
+
+" longest sounds useful, but doesn't seem to do what it says, and interferes with CTRL-E
+" setlocal completeopt-=longest
 
 map <LocalLeader>ct :call GHC_CreateTagfile()<cr>
 function! GHC_CreateTagfile()
@@ -443,15 +445,72 @@ function! GHC_MkImportsExplicit()
   call setpos('.', save_cursor)
 endfunction
 
-if GHC_VersionGE([6,8,2])
-  let opts = filter(split(substitute(system(g:ghc . ' -v0 --interactive', ':set'), '  ', '','g'), '\n'), 'v:val =~ "-f"')
+" no need to ask GHC about its supported languages and
+" options with every editing session. cache the info in
+" ~/.vim/haskellmode.config 
+" TODO: should we store more info (see haskell_doc.vim)?
+"       move to autoload?
+"       should we keep a history of GHC versions encountered?
+function! GHC_SaveConfig()
+  let vimdir = expand('~').'/'.'.vim'
+  let config = vimdir.'/haskellmode.config'
+  if !isdirectory(vimdir)
+    call mkdir(vimdir)
+  endif
+  let entries = ['-- '.g:ghc_version]
+  for l in s:ghc_supported_languages
+    let entries += [l]
+  endfor
+  let entries += ['--']
+  for l in s:opts
+    let entries += [l]
+  endfor
+  call writefile(entries,config)
+endfunction
+
+" reuse cached GHC configuration info, if using the same
+" GHC version.
+function! GHC_LoadConfig()
+  let vimdir = expand('~').'/'.'.vim'
+  let config = vimdir.'/haskellmode.config'
+  if filereadable(config)
+    let lines = readfile(config)
+    if lines[0]=='-- '.g:ghc_version
+      let i=1
+      let s:ghc_supported_languages = []
+      while i<len(lines) && lines[i]!='--'
+        let s:ghc_supported_languages += [lines[i]]
+        let i+=1
+      endwhile
+      let i+=1
+      let s:opts = []
+      while i<len(lines)
+        let s:opts += [lines[i]]
+        let i+=1
+      endwhile
+      return 1
+    else
+      return 0
+    endif
+  else
+    return 0
+  endif
+endfunction
+
+let s:GHC_CachedConfig = haskellmode#GHC_VersionGE([6,8]) && GHC_LoadConfig()
+
+if haskellmode#GHC_VersionGE([6,8,2])
+  if !s:GHC_CachedConfig
+    let s:opts = filter(split(substitute(system(g:ghc . ' -v0 --interactive', ':set'), '  ', '','g'), '\n'), 'v:val =~ "-f"')
+  endif
 else
-  let opts = ["-fglasgow-exts","-fallow-undecidable-instances","-fallow-overlapping-instances","-fno-monomorphism-restriction","-fno-mono-pat-binds","-fno-cse","-fbang-patterns","-funbox-strict-fields"]
+  let s:opts = ["-fglasgow-exts","-fallow-undecidable-instances","-fallow-overlapping-instances","-fno-monomorphism-restriction","-fno-mono-pat-binds","-fno-cse","-fbang-patterns","-funbox-strict-fields"]
 endif
+let s:opts = sort(s:opts)
 
 amenu ]OPTIONS_GHC.- :echo '-'<cr>
 aunmenu ]OPTIONS_GHC
-for o in opts
+for o in s:opts
   exe 'amenu ]OPTIONS_GHC.'.o.' :call append(0,"{-# OPTIONS_GHC '.o.' #-}")<cr>'
 endfor
 if has("gui_running")
@@ -462,9 +521,11 @@ endif
 
 amenu ]LANGUAGES_GHC.- :echo '-'<cr>
 aunmenu ]LANGUAGES_GHC
-if GHC_VersionGE([6,8])
-  let ghc_supported_languages = split(system(g:ghc . ' --supported-languages'),'\n')
-  for l in ghc_supported_languages
+if haskellmode#GHC_VersionGE([6,8])
+  if !s:GHC_CachedConfig
+    let s:ghc_supported_languages = sort(split(system(g:ghc . ' --supported-languages'),'\n'))
+  endif
+  for l in s:ghc_supported_languages
     exe 'amenu ]LANGUAGES_GHC.'.l.' :call append(0,"{-# LANGUAGE '.l.' #-}")<cr>'
   endfor
   if has("gui_running")
@@ -473,164 +534,34 @@ if GHC_VersionGE([6,8])
     map <LocalLeader>lang :emenu ]LANGUAGES_GHC.
   endif
 endif
-ftplugin/haskell.vim	[[[1
-149
 
-" todo: allow disabling and undo
-" (Claus Reinke, last modified: 10/04/2009)
+if !s:GHC_CachedConfig
+  call GHC_SaveConfig()
+endif
+
+ftplugin/haskell.vim	[[[1
+14
+"
+" general Haskell source settings
+" (shared functions are in autoload/haskellmode.vim)
+"
+" (Claus Reinke, last modified: 28/04/2009)
 "
 " part of haskell plugins: http://projects.haskell.org/haskellmode-vim
 " please send patches to <claus.reinke@talk21.com>
 
 " try gf on import line, or ctrl-x ctrl-i, or [I, [i, ..
-set include=^import\\s*\\(qualified\\)\\?\\s*
-set includeexpr=substitute(v:fname,'\\.','/','g').'.hs'
+setlocal include=^import\\s*\\(qualified\\)\\?\\s*
+setlocal includeexpr=substitute(v:fname,'\\.','/','g').'.'
+setlocal suffixesadd=hs,lhs,hsc
 
-
-" find start/extent of name/symbol under cursor;
-" return start, symbolic flag, qualifier, unqualified id
-" (this is used in both haskell_doc.vim and in GHC.vim)
-function! Haskell_GetNameSymbol(line,col,off)
-  let name    = "[a-zA-Z0-9_']"
-  let symbol  = "[-!#$%&\*\+/<=>\?@\\^|~:.]"
-  "let [line]  = getbufline(a:buf,a:lnum)
-  let line    = a:line
-
-  " find the beginning of unqualified id or qualified id component 
-  let start   = (a:col - 1) + a:off
-  if line[start] =~ name
-    let pattern = name
-  elseif line[start] =~ symbol
-    let pattern = symbol
-  else
-    return []
-  endif
-  while start > 0 && line[start - 1] =~ pattern
-    let start -= 1
-  endwhile
-  let id    = matchstr(line[start :],pattern.'*')
-  " call confirm(id)
-
-  " expand id to left and right, to get full id
-  let idPos = id[0] == '.' ? start+2 : start+1
-  let posA  = match(line,'\<\(\([A-Z]'.name.'*\.\)\+\)\%'.idPos.'c')
-  let start = posA>-1 ? posA+1 : idPos
-  let posB  = matchend(line,'\%'.idPos.'c\(\([A-Z]'.name.'*\.\)*\)\('.name.'\+\|'.symbol.'\+\)')
-  let end   = posB>-1 ? posB : idPos
-
-  " special case: symbolic ids starting with .
-  if id[0]=='.' && posA==-1 
-    let start = idPos-1
-    let end   = posB==-1 ? start : end
-  endif
-
-  " classify full id and split into qualifier and unqualified id
-  let fullid   = line[ (start>1 ? start-1 : 0) : (end-1) ]
-  let symbolic = fullid[-1:-1] =~ symbol  " might also be incomplete qualified id ending in .
-  let qualPos  = matchend(fullid, '\([A-Z]'.name.'*\.\)\+')
-  let qualifier = qualPos>-1 ? fullid[ 0 : (qualPos-2) ] : ''
-  let unqualId  = qualPos>-1 ? fullid[ qualPos : -1 ] : fullid
-  " call confirm(start.'/'.end.'['.symbolic.']:'.qualifier.' '.unqualId)
-
-  return [start,symbolic,qualifier,unqualId]
-endfunction
-
-function! Haskell_GatherImports()
-  let imports={0:{},1:{}}
-  let i=1
-  while i<=line('$')
-    let res = Haskell_GatherImport(i)
-    if !empty(res)
-      let [i,import] = res
-      let prefixPat = '^import\s*\(qualified\)\?\s\+'
-      let modulePat = '\([A-Z][a-zA-Z0-9_''.]*\)'
-      let asPat     = '\(\s\+as\s\+'.modulePat.'\)\?'
-      let hidingPat = '\(\s\+hiding\s*\((.*)\)\)\?'
-      let listPat   = '\(\s*\((.*)\)\)\?'
-      let importPat = prefixPat.modulePat.asPat.hidingPat.listPat ".'\s*$'
-
-      let ml = matchlist(import,importPat)
-      if ml!=[]
-        let [_,qualified,module,_,as,_,hiding,_,explicit;x] = ml
-        let what = as=='' ? module : as
-        let hidings   = split(hiding[1:-2],',')
-        let explicits = split(explicit[1:-2],',')
-        let empty = {'lines':[],'hiding':hidings,'explicit':[],'modules':[]}
-        let entry = has_key(imports[1],what) ? imports[1][what] : deepcopy(empty)
-        let imports[1][what] = Haskell_MergeImport(deepcopy(entry),i,hidings,explicits,module)
-        if !(qualified=='qualified')
-          let imports[0][what] = Haskell_MergeImport(deepcopy(entry),i,hidings,explicits,module)
-        endif
-      else
-        echoerr "Haskell_GatherImports doesn't understand: ".import
-      endif
-    endif
-    let i+=1
-  endwhile
-  if !has_key(imports[1],'Prelude') 
-    let imports[0]['Prelude'] = {'lines':[],'hiding':[],'explicit':[],'modules':[]}
-    let imports[1]['Prelude'] = {'lines':[],'hiding':[],'explicit':[],'modules':[]}
-  endif
-  return imports
-endfunction
-
-function! Haskell_ListElem(list,elem)
-  for e in a:list | if e==a:elem | return 1 | endif | endfor
-  return 0
-endfunction
-
-function! Haskell_ListIntersect(list1,list2)
-  let l = []
-  for e in a:list1 | if index(a:list2,e)!=-1 | let l += [e] | endif | endfor
-  return l
-endfunction
-
-function! Haskell_ListUnion(list1,list2)
-  let l = []
-  for e in a:list2 | if index(a:list1,e)==-1 | let l += [e] | endif | endfor
-  return a:list1 + l
-endfunction
-
-function! Haskell_ListWithout(list1,list2)
-  let l = []
-  for e in a:list1 | if index(a:list2,e)==-1 | let l += [e] | endif | endfor
-  return l
-endfunction
-
-function! Haskell_MergeImport(entry,line,hiding,explicit,module)
-  let lines    = a:entry['lines'] + [ a:line ]
-  let hiding   = a:explicit==[] ? Haskell_ListIntersect(a:entry['hiding'], a:hiding) 
-                              \ : Haskell_ListWithout(a:entry['hiding'],a:explicit)
-  let explicit = Haskell_ListUnion(a:entry['explicit'], a:explicit)
-  let modules  = Haskell_ListUnion(a:entry['modules'], [ a:module ])
-  return {'lines':lines,'hiding':hiding,'explicit':explicit,'modules':modules}
-endfunction
-
-" collect lines belonging to a single import statement;
-" return number of last line and collected import statement
-" (assume opening parenthesis, if any, is on the first line)
-function! Haskell_GatherImport(lineno)
-  let lineno = a:lineno
-  let import = getline(lineno)
-  if !(import=~'^import\s') | return [] | endif
-  let open  = strlen(substitute(import,'[^(]','','g'))
-  let close = strlen(substitute(import,'[^)]','','g'))
-  while open!=close
-    let lineno += 1
-    let linecont = getline(lineno)
-    let open  += strlen(substitute(linecont,'[^(]','','g'))
-    let close += strlen(substitute(linecont,'[^)]','','g'))
-    let import .= linecont
-  endwhile
-  return [lineno,import]
-endfunction
 ftplugin/haskell_doc.vim	[[[1
-753
+881
 "
 " use haddock docs and index files
 " show documentation, complete & qualify identifiers 
 "
-" (Claus Reinke; last modified: 07/04/2009)
+" (Claus Reinke; last modified: 17/06/2009)
 " 
 " part of haskell plugins: http://projects.haskell.org/haskellmode-vim
 " please send patches to <claus.reinke@talk21.com>
@@ -694,14 +625,7 @@ if !exists("g:haddock_browser")
   echoerr s:scriptname." WARNING: please set g:haddock_browser!"
 endif
 
-if (!exists("g:ghc") || !executable(g:ghc)) 
-  if !executable('ghc') 
-    echoerr s:scriptname." can't find ghc. please set g:ghc, or extend $PATH"
-    finish
-  else
-    let g:ghc = 'ghc'
-  endif
-endif    
+if !haskellmode#GHC() | finish | endif
 
 if (!exists("g:ghc_pkg") || !executable(g:ghc_pkg))
   let g:ghc_pkg = substitute(g:ghc,'\(.*\)ghc','\1ghc-pkg','')
@@ -713,13 +637,17 @@ elseif executable(g:ghc_pkg)
 " try to figure out location of html docs
 " first choice: where the base docs are (from the first base listed)
   let [field;x] = split(system(g:ghc_pkg . ' field base haddock-html'),'\n')
-  let field = substitute(field,'haddock-html: \(.*\)libraries.base','\1','')
+  " path changes in ghc-6.12.*
+  " let field = substitute(field,'haddock-html: \(.*\)libraries.base','\1','')
+  let field = substitute(field,'haddock-html: \(.*\)lib\(raries\)\?.base.*$','\1','')
   let field = substitute(field,'\\','/','g')
-  let alternate = substitute(field,'html','doc/html','')
-  if isdirectory(field)
-    let s:docdir = field
-  elseif isdirectory(alternate)
+  " let alternate = substitute(field,'html','doc/html','')
+  " changes for ghc-6.12.*: check for doc/html/ first
+  let alternate = field.'doc/html/'
+  if isdirectory(alternate)
     let s:docdir = alternate
+  elseif isdirectory(field)
+    let s:docdir = field
   endif
 else
   echoerr s:scriptname." can't find ghc-pkg (set g:ghc_pkg ?)."
@@ -730,8 +658,7 @@ if !exists('s:docdir') || !isdirectory(s:docdir)
   let s:ghc_libdir = substitute(system(g:ghc . ' --print-libdir'),'\n','','')
   let location1a = s:ghc_libdir . '/doc/html/'
   let location1b = s:ghc_libdir . '/doc/'
-  let s:ghc_version = substitute(system(g:ghc . ' --numeric-version'),'\n','','')
-  let location2 = '/usr/share/doc/ghc-' . s:ghc_version . '/html/' 
+  let location2 = '/usr/share/doc/ghc-' . haskellmode#GHC_Version() . '/html/' 
   if isdirectory(location1a)
     let s:docdir = location1a
   elseif isdirectory(location1b)
@@ -775,12 +702,12 @@ let s:haddock_indexfile = s:haddock_indexfiledir . 'haddock_index.vim'
 " to call, the second being the url).
 if !exists("g:haddock_browser_callformat")
   if has("win32") || has("win64")
-    let g:haddock_browser_callformat = 'start %s "file://%s"'
+    let g:haddock_browser_callformat = 'start %s "%s"'
   else
     if has("gui_running")
-      let g:haddock_browser_callformat = '%s file://%s '.printf(&shellredir,'/dev/null').' &'
+      let g:haddock_browser_callformat = '%s %s '.printf(&shellredir,'/dev/null').' &'
     else
-      let g:haddock_browser_callformat = '%s file://%s'
+      let g:haddock_browser_callformat = '%s %s'
     endif
   endif
 endif
@@ -792,7 +719,7 @@ endif
 
 command! DocSettings call DocSettings()
 function! DocSettings()
-  for v in ["g:haddock_browser","g:haddock_browser_callformat","g:haddock_docdir","g:haddock_indexfiledir","s:ghc_libdir","s:ghc_version","s:docdir","s:libraries","s:guide","s:haddock_indexfile"]
+  for v in ["g:haddock_browser","g:haddock_browser_callformat","g:haddock_docdir","g:haddock_indexfiledir","s:ghc_libdir","g:ghc_version","s:docdir","s:libraries","s:guide","s:haddock_indexfile"]
     if exists(v)
       echo v '=' eval(v)
     else
@@ -808,17 +735,27 @@ function! DocBrowser(url)
     return
   endif
   " start browser to open url, according to specified format
-  silent exe '!'.printf(g:haddock_browser_callformat,g:haddock_browser,escape(a:url,'#%')) 
+  let url = a:url=~'^\(file://\|http://\)' ? a:url : 'file://'.a:url
+  silent exe '!'.printf(g:haddock_browser_callformat,g:haddock_browser,escape(url,'#%')) 
 endfunction
 
-"usage examples:
+"Doc/Doct are an old interface for documentation lookup
+"(that is the reason they are not documented!-)
+"
+"These uses are still fine at the moment, and are the reason 
+"that this command still exists at all
+"
+" :Doc -top
+" :Doc -libs
+" :Doc -guide
+"
+"These uses may or may not work, and shouldn't be relied on anymore
+"(usually, you want _?/_?1/_?2 or :MDoc; there is also :IDoc)
+"
 " :Doc length
 " :Doc Control.Monad.when
 " :Doc Data.List.
 " :Doc Control.Monad.State.runState mtl
-" :Doc -top
-" :Doc -libs
-" :Doc -guide
 command! -nargs=+ Doc  call Doc('v',<f-args>)
 command! -nargs=+ Doct call Doc('t',<f-args>)
 
@@ -858,12 +795,12 @@ function! Doc(kind,qualname,...)
     let file = join(qual,'-') . suffix . relative . name
   endif
 
-"  let path = s:libraries . package . file
-  let path = file
+  let path = s:libraries . package . file
   call DocBrowser(path)
 endfunction
 
 " TODO: add commandline completion for :IDoc
+"       switch to :emenu instead of inputlist?
 " indexed variant of Doc, looking up links in g:haddock_index
 " usage:
 "  1. :IDoc length
@@ -878,8 +815,6 @@ function! IDoc(name,...)
   else
     let choice = a:1
   endif
-
-" let path = s:libraries . values(choices)[choice]
   let path = values(choices)[choice] " assumes same order for keys/values..
   call DocBrowser(path)
 endfunction
@@ -899,8 +834,7 @@ if filereadable(s:flagref)
     let s:flagheaderids[s:title] = s:id
     let s:ml = matchlist(s:r,s:headerPat)
   endwhile
-  command! -nargs=1 -complete=customlist,CompleteFlagHeaders
-          \ FlagReference call FlagReference(<f-args>)
+  command! -nargs=1 -complete=customlist,CompleteFlagHeaders FlagReference call FlagReference(<f-args>)
   function! FlagReference(section)
     let relativeUrl = a:section==""||!exists("s:flagheaderids['".a:section."']") ? 
                     \ "" : "#".s:flagheaderids[a:section]
@@ -938,8 +872,12 @@ command! DocIndex call DocIndex()
 function! DocIndex()
   let files   = split(globpath(s:libraries,'doc-index*.html'),'\n')
   let g:haddock_index = {}
-  call ProcessHaddockIndexes2(s:libraries,files)
-  if GHC_VersionGE([6,8,2])
+  if haskellmode#GHC_VersionGE([7,0,0])
+    call ProcessHaddockIndexes3(s:libraries,files)
+  else
+    call ProcessHaddockIndexes2(s:libraries,files)
+  endif
+  if haskellmode#GHC_VersionGE([6,8,2])
     if &shell =~ 'sh' " unix-type shell
       let s:addon_libraries = split(system(g:ghc_pkg . ' field \* haddock-html'),'\n')
     else " windows cmd.exe and the like
@@ -951,7 +889,11 @@ function! DocIndex()
         let [_,quote,file,addon_path;x] = ml
         let addon_path = substitute(addon_path,'\(\\\\\|\\\)','/','g')
         let addon_files = split(globpath(addon_path,'doc-index*.html'),'\n')
-        call ProcessHaddockIndexes2(addon_path,addon_files)
+        if haskellmode#GHC_VersionGE([7,0,0])
+          call ProcessHaddockIndexes3(addon_path,addon_files)
+        else
+          call ProcessHaddockIndexes2(addon_path,addon_files)
+        endif
       endif
     endfor
   endif
@@ -1046,6 +988,63 @@ function! ProcessHaddockIndexes2(location,files)
   endfor
 endfunction
 
+function! ProcessHaddockIndexes3(location,files)
+  let entryPat= '>\(.*\)$'
+  let linkPat = '<a href="\([^"]*\)"'
+  let kindPat = '#\(.\)'
+
+  " redraw
+  echo 'populating g:haddock_index from haddock index files in ' a:location
+  for f in a:files  
+    echo f[len(a:location):]
+    let isLink  = ''
+    let link    = {}
+    let entry   = ''
+    let lines   = split(join(readfile(f,'b')),'\ze<')
+    for line in lines
+      if (line=~'class="src') || (line=~'/table')
+        if (link!={}) && (entry!='')
+          if has_key(g:haddock_index,DeHTML(entry))
+            let dict = extend(g:haddock_index[DeHTML(entry)],deepcopy(link))
+          else
+            let dict = deepcopy(link)
+          endif
+          let g:haddock_index[DeHTML(entry)] = dict
+          let link  = {}
+          let entry = ''
+        endif
+        let ml = matchlist(line,entryPat)
+        if ml!=[] | let [_,entry;x] = ml | continue | endif
+        continue 
+      endif
+      if entry!=''
+        let ml = matchlist(line,linkPat)
+        if ml!=[] 
+          let [_,isLink;x]=ml
+          let ml = matchlist(line,entryPat)
+          if ml!=[] 
+            let [_,module;x] = ml 
+            let [_,kind;x]   = matchlist(isLink,kindPat)
+            let last         = a:location[strlen(a:location)-1]
+            let link[module."[".kind."]"] = a:location . (last=='/'?'':'/') . isLink
+            let isLink='' 
+          endif
+          continue
+        endif
+      endif
+    endfor
+    if link!={} 
+      if has_key(g:haddock_index,DeHTML(entry))
+        let dict = extend(g:haddock_index[DeHTML(entry)],deepcopy(link))
+      else
+        let dict = deepcopy(link)
+      endif
+      let g:haddock_index[DeHTML(entry)] = dict
+    endif
+  endfor
+endfunction
+
+
 command! ExportDocIndex call ExportDocIndex()
 function! ExportDocIndex()
   call HaveIndex()
@@ -1086,7 +1085,7 @@ function! MkHaddockModuleIndex()
       let html = dict[module]
       let html   = substitute(html  ,'#.*$','','')
       let module = substitute(module,'\[.\]','','')
-      let ml = matchlist(html,'libraries/\([^\/]*\)\/')
+      let ml = matchlist(html,'libraries/\([^\/]*\)[\/]')
       if ml!=[]
         let [_,package;x] = ml
         let g:haddock_moduleindex[module] = {'package':package,'html':html}
@@ -1116,47 +1115,105 @@ endfunction
 
 " find haddocks for word under cursor
 " also lists possible definition sites
+" - needs to work for both qualified and unqualified items
+" - for 'import qualified M as A', consider M.item as source of A.item
+" - offer sources from both type [t] and value [v] namespaces
+" - for unqualified items, list all possible sites
+" - for qualified items, list imported sites only
+" keep track of keys with and without namespace tags:
+" the former are needed for lookup, the latter for matching against source
 map <LocalLeader>? :call Haddock()<cr>
 function! Haddock()
   amenu ]Popup.- :echo '-'<cr>
   aunmenu ]Popup
-  let namsym   = Haskell_GetNameSymbol(getline('.'),col('.'),0)
+  let namsym   = haskellmode#GetNameSymbol(getline('.'),col('.'),0)
   if namsym==[]
     redraw
     echo 'no name/symbol under cursor!'
     return 0
   endif
   let [start,symb,qual,unqual] = namsym
-  let imports = Haskell_GatherImports()
+  let imports = haskellmode#GatherImports()
   let asm  = has_key(imports[1],qual) ? imports[1][qual]['modules'] : []
   let name = unqual
   let dict = HaddockIndexLookup(name)
   if dict=={} | return | endif
-  let keylist = map(deepcopy(keys(dict)),'substitute(v:val,"\\[.\\]","","")')
-  let keys = ((qual=='')||(asm==[])||(qual==asm[0])) ? keys(dict) 
-                                                   \ : Haskell_ListIntersect(keylist,asm)
-  if (qual!='') && (asm!=[]) && (qual==asm[0])
-    for key in keys
-      if key==qual
-        " call DocBrowser(s:libraries . dict[key])
-        call DocBrowser(dict[key])
-      endif
-    endfor
+  " for qualified items, narrow results to possible imports that provide qualifier
+  let filteredKeys = filter(copy(keys(dict))
+                         \ ,'match(asm,substitute(v:val,''\[.\]'','''',''''))!=-1') 
+  let keys = (qual!='') ?  filteredKeys : keys(dict)
+  if (keys==[]) && (qual!='')
+    echoerr qual.'.'.unqual.' not found in imports'
+    return 0
+  endif
+  " use 'setlocal completeopt+=menuone' if you always want to see menus before
+  " anything happens (I do, but many users don't..)
+  if len(keys)==1 && (&completeopt!~'menuone')
+        call DocBrowser(dict[keys[0]])
   elseif has("gui_running")
-    " let i=0
     for key in keys
-      let i = index(keylist,key)
-      exe 'amenu ]Popup.'.escape(key,'\.').' :call IDoc("'.escape(name,'|').'",'.i.')<cr>'
-      " let i+=1
+      exe 'amenu ]Popup.'.escape(key,'\.').' :call DocBrowser('''.dict[key].''')<cr>'
     endfor
     popup ]Popup
   else
     let s:choices = keys
     let key = input('browse docs for '.name.' in: ','','customlist,CompleteAux')
     if key!=''
-      " call DocBrowser(s:libraries . dict[key])
       call DocBrowser(dict[key])
     endif
+  endif
+endfunction
+
+if !exists("g:haskell_search_engines")
+  let g:haskell_search_engines = 
+    \ {'hoogle':'http://www.haskell.org/hoogle/?hoogle=%s'
+    \ ,'hayoo!':'http://holumbus.fh-wedel.de/hayoo/hayoo.html?query=%s'
+    \ }
+endif
+
+map <LocalLeader>?? :let es=g:haskell_search_engines
+                 \ \|echo "g:haskell_search_engines"
+                 \ \|for e in keys(es)
+                 \ \|echo e.' : '.es[e]
+                 \ \|endfor<cr>
+map <LocalLeader>?1 :call HaskellSearchEngine('hoogle')<cr>
+map <LocalLeader>?2 :call HaskellSearchEngine('hayoo!')<cr>
+
+" query one of the Haskell search engines for the thing under cursor
+" - unqualified symbols need to be url-escaped
+" - qualified ids need to be fed as separate qualifier and id for
+"   both hoogle (doesn't handle qualified symbols) and hayoo! (no qualified
+"   ids at all)
+" - qualified ids referring to import-qualified-as qualifiers need to be
+"   translated to the multi-module searches over the list of original modules
+function! HaskellSearchEngine(engine)
+  amenu ]Popup.- :echo '-'<cr>
+  aunmenu ]Popup
+  let namsym   = haskellmode#GetNameSymbol(getline('.'),col('.'),0)
+  if namsym==[]
+    redraw
+    echo 'no name/symbol under cursor!'
+    return 0
+  endif
+  let [start,symb,qual,unqual] = namsym
+  let imports = haskellmode#GatherImports()
+  let asm  = has_key(imports[1],qual) ? imports[1][qual]['modules'] : []
+  let unqual = haskellmode#UrlEncode(unqual)
+  if a:engine=='hoogle'
+    let name = asm!=[] ? unqual.'+'.join(map(copy(asm),'"%2B".v:val'),'+')
+           \ : qual!='' ? unqual.'+'.haskellmode#UrlEncode('+').qual
+           \ : unqual
+  elseif a:engine=='hayoo!'
+    let name = asm!=[] ? unqual.'+module:('.join(copy(asm),' OR ').')'
+           \ : qual!='' ? unqual.'+module:'.qual
+           \ : unqual
+  else
+    let name = qual=="" ? unqual : qual.".".unqual
+  endif
+  if has_key(g:haskell_search_engines,a:engine)
+    call DocBrowser(printf(g:haskell_search_engines[a:engine],name))
+  else
+    echoerr "unknown search engine: ".a:engine
   endif
 endfunction
 
@@ -1204,7 +1261,7 @@ endfunction
 " use haddock name index for insert mode completion (CTRL-X CTRL-U)
 function! CompleteHaddock(findstart, base)
   if a:findstart 
-    let namsym   = Haskell_GetNameSymbol(getline('.'),col('.'),-1) " insert-mode: we're 1 beyond the text
+    let namsym   = haskellmode#GetNameSymbol(getline('.'),col('.'),-1) " insert-mode: we're 1 beyond the text
     if namsym==[]
       redraw
       echo 'no name/symbol under cursor!'
@@ -1252,15 +1309,25 @@ function! CompleteHaddock(findstart, base)
     return res
   endif
 endfunction
-set completefunc=CompleteHaddock
-set completeopt=menu,menuone,longest
+setlocal completefunc=CompleteHaddock
+"
+" Vim's default completeopt is menu,preview
+" you probably want at least menu, or you won't see alternatives listed
+" setlocal completeopt+=menu
+
+" menuone is useful, but other haskellmode menus will try to follow your choice here in future
+" setlocal completeopt+=menuone
+
+" longest sounds useful, but doesn't seem to do what it says, and interferes with CTRL-E
+" setlocal completeopt-=longest
 
 " fully qualify an unqualified name
+" TODO: - standardise commandline versions of menus
 map <LocalLeader>. :call Qualify()<cr>
 function! Qualify()
   amenu ]Popup.- :echo '-'<cr>
   aunmenu ]Popup
-  let namsym   = Haskell_GetNameSymbol(getline('.'),col('.'),0)
+  let namsym   = haskellmode#GetNameSymbol(getline('.'),col('.'),0)
   if namsym==[]
     redraw
     echo 'no name/symbol under cursor!'
@@ -1275,29 +1342,36 @@ function! Qualify()
   let name = unqual
   let line         = line('.')
   let prefix       = (start<=1 ? '' : getline(line)[0:start-2] )
-  let i=0
   let dict   = HaddockIndexLookup(name)
   if dict=={} | return | endif
   let keylist = map(deepcopy(keys(dict)),'substitute(v:val,"\\[.\\]","","")')
-  let imports = Haskell_GatherImports()
+  let imports = haskellmode#GatherImports()
+  let qualifiedImports = []
   for qualifiedImport in keys(imports[1])
     let c=0
     for module in imports[1][qualifiedImport]['modules']
-      if Haskell_ListElem(keylist,module) | let c+=1 | endif
+      if haskellmode#ListElem(keylist,module) | let c+=1 | endif
     endfor
-    if c>0 | let keylist=[qualifiedImport]+keylist | endif
+    if c>0 | let qualifiedImports=[qualifiedImport]+qualifiedImports | endif
   endfor
   "let asm  = has_key(imports[1],qual) ? imports[1][qual]['modules'] : []
+  let keylist = filter(copy(keylist),'index(qualifiedImports,v:val)==-1')
   if has("gui_running")
+    " amenu ]Popup.-imported- :
+    for key in qualifiedImports
+      let lhs=escape(prefix.name,'/.|\')
+      let rhs=escape(prefix.key.'.'.name,'/&|\')
+      exe 'amenu ]Popup.'.escape(key,'\.').' :'.line.'s/'.lhs.'/'.rhs.'/<cr>:noh<cr>'
+    endfor
+    amenu ]Popup.-not\ imported- :
     for key in keylist
       let lhs=escape(prefix.name,'/.|\')
       let rhs=escape(prefix.key.'.'.name,'/&|\')
       exe 'amenu ]Popup.'.escape(key,'\.').' :'.line.'s/'.lhs.'/'.rhs.'/<cr>:noh<cr>'
-      let i+=1
     endfor
     popup ]Popup
   else
-    let s:choices = keylist
+    let s:choices = qualifiedImports+keylist
     let key = input('qualify '.name.' with: ','','customlist,CompleteAux')
     if key!=''
       let lhs=escape(prefix.name,'/.\')
@@ -1309,6 +1383,8 @@ function! Qualify()
 endfunction
 
 " create (qualified) import for a (qualified) name
+" TODO: refine search patterns, to avoid misinterpretation of
+"       oddities like import'Neither or not'module
 map <LocalLeader>i :call Import(0,0)<cr>
 map <LocalLeader>im :call Import(1,0)<cr>
 map <LocalLeader>iq :call Import(0,1)<cr>
@@ -1316,7 +1392,7 @@ map <LocalLeader>iqm :call Import(1,1)<cr>
 function! Import(module,qualified)
   amenu ]Popup.- :echo '-'<cr>
   aunmenu ]Popup
-  let namsym   = Haskell_GetNameSymbol(getline('.'),col('.'),0)
+  let namsym   = haskellmode#GetNameSymbol(getline('.'),col('.'),0)
   if namsym==[]
     redraw
     echo 'no name/symbol under cursor!'
@@ -1362,23 +1438,6 @@ function! HaddockIndexLookup(name)
   return g:haddock_index[a:name]
 endfunction
 
-" copied from ghc.vim :-( should we move everything to using autoload instead?
-" we query the ghc version here, as we don't otherwise need it..
-function! GHC_VersionGE(target)
-  let s:ghc_version = substitute(system(g:ghc . ' --numeric-version'),'\n','','')
-  let current = split(g:ghc_version, '\.' )
-  let target  = a:target
-  for i in current
-    if ((target==[]) || (i>target[0]))
-      return 1
-    elseif (i==target[0])
-      let target = target[1:]
-    else
-      return 0
-    endif
-  endfor
-  return 1
-endfunction
 ftplugin/haskell_hpaste.vim	[[[1
 79
 " rudimentary hpaste support for vim
@@ -1460,9 +1519,202 @@ endfunction
 "   let cmd = g:wget.' --post-data="content='.join(lines,'').'&nick='.nick.'&title='.title.'&announce='.announce.'" '.url
 "   exe escape(cmd,'%')
 " endfunction
+autoload/haskellmode.vim	[[[1
+191
+"
+" utility functions for haskellmode plugins
+"
+" (Claus Reinke; last modified: 22/06/2010)
+" 
+" part of haskell plugins: http://projects.haskell.org/haskellmode-vim
+" please send patches to <claus.reinke@talk21.com>
+
+
+
+" find start/extent of name/symbol under cursor;
+" return start, symbolic flag, qualifier, unqualified id
+" (this is used in both haskell_doc.vim and in GHC.vim)
+function! haskellmode#GetNameSymbol(line,col,off)
+  let name    = "[a-zA-Z0-9_']"
+  let symbol  = "[-!#$%&\*\+/<=>\?@\\^|~:.]"
+  "let [line]  = getbufline(a:buf,a:lnum)
+  let line    = a:line
+
+  " find the beginning of unqualified id or qualified id component 
+  let start   = (a:col - 1) + a:off
+  if line[start] =~ name
+    let pattern = name
+  elseif line[start] =~ symbol
+    let pattern = symbol
+  else
+    return []
+  endif
+  while start > 0 && line[start - 1] =~ pattern
+    let start -= 1
+  endwhile
+  let id    = matchstr(line[start :],pattern.'*')
+  " call confirm(id)
+
+  " expand id to left and right, to get full id
+  let idPos = id[0] == '.' ? start+2 : start+1
+  let posA  = match(line,'\<\(\([A-Z]'.name.'*\.\)\+\)\%'.idPos.'c')
+  let start = posA>-1 ? posA+1 : idPos
+  let posB  = matchend(line,'\%'.idPos.'c\(\([A-Z]'.name.'*\.\)*\)\('.name.'\+\|'.symbol.'\+\)')
+  let end   = posB>-1 ? posB : idPos
+
+  " special case: symbolic ids starting with .
+  if id[0]=='.' && posA==-1 
+    let start = idPos-1
+    let end   = posB==-1 ? start : end
+  endif
+
+  " classify full id and split into qualifier and unqualified id
+  let fullid   = line[ (start>1 ? start-1 : 0) : (end-1) ]
+  let symbolic = fullid[-1:-1] =~ symbol  " might also be incomplete qualified id ending in .
+  let qualPos  = matchend(fullid, '\([A-Z]'.name.'*\.\)\+')
+  let qualifier = qualPos>-1 ? fullid[ 0 : (qualPos-2) ] : ''
+  let unqualId  = qualPos>-1 ? fullid[ qualPos : -1 ] : fullid
+  " call confirm(start.'/'.end.'['.symbolic.']:'.qualifier.' '.unqualId)
+
+  return [start,symbolic,qualifier,unqualId]
+endfunction
+
+function! haskellmode#GatherImports()
+  let imports={0:{},1:{}}
+  let i=1
+  while i<=line('$')
+    let res = haskellmode#GatherImport(i)
+    if !empty(res)
+      let [i,import] = res
+      let prefixPat = '^import\s*\%({-#\s*SOURCE\s*#-}\)\?\(qualified\)\?\s\+'
+      let modulePat = '\([A-Z][a-zA-Z0-9_''.]*\)'
+      let asPat     = '\(\s\+as\s\+'.modulePat.'\)\?'
+      let hidingPat = '\(\s\+hiding\s*\((.*)\)\)\?'
+      let listPat   = '\(\s*\((.*)\)\)\?'
+      let importPat = prefixPat.modulePat.asPat.hidingPat.listPat ".'\s*$'
+
+      let ml = matchlist(import,importPat)
+      if ml!=[]
+        let [_,qualified,module,_,as,_,hiding,_,explicit;x] = ml
+        let what = as=='' ? module : as
+        let hidings   = split(hiding[1:-2],',')
+        let explicits = split(explicit[1:-2],',')
+        let empty = {'lines':[],'hiding':hidings,'explicit':[],'modules':[]}
+        let entry = has_key(imports[1],what) ? imports[1][what] : deepcopy(empty)
+        let imports[1][what] = haskellmode#MergeImport(deepcopy(entry),i,hidings,explicits,module)
+        if !(qualified=='qualified')
+          let imports[0][what] = haskellmode#MergeImport(deepcopy(entry),i,hidings,explicits,module)
+        endif
+      else
+        echoerr "haskellmode#GatherImports doesn't understand: ".import
+      endif
+    endif
+    let i+=1
+  endwhile
+  if !has_key(imports[1],'Prelude') 
+    let imports[0]['Prelude'] = {'lines':[],'hiding':[],'explicit':[],'modules':[]}
+    let imports[1]['Prelude'] = {'lines':[],'hiding':[],'explicit':[],'modules':[]}
+  endif
+  return imports
+endfunction
+
+function! haskellmode#ListElem(list,elem)
+  for e in a:list | if e==a:elem | return 1 | endif | endfor
+  return 0
+endfunction
+
+function! haskellmode#ListIntersect(list1,list2)
+  let l = []
+  for e in a:list1 | if index(a:list2,e)!=-1 | let l += [e] | endif | endfor
+  return l
+endfunction
+
+function! haskellmode#ListUnion(list1,list2)
+  let l = []
+  for e in a:list2 | if index(a:list1,e)==-1 | let l += [e] | endif | endfor
+  return a:list1 + l
+endfunction
+
+function! haskellmode#ListWithout(list1,list2)
+  let l = []
+  for e in a:list1 | if index(a:list2,e)==-1 | let l += [e] | endif | endfor
+  return l
+endfunction
+
+function! haskellmode#MergeImport(entry,line,hiding,explicit,module)
+  let lines    = a:entry['lines'] + [ a:line ]
+  let hiding   = a:explicit==[] ? haskellmode#ListIntersect(a:entry['hiding'], a:hiding) 
+                              \ : haskellmode#ListWithout(a:entry['hiding'],a:explicit)
+  let explicit = haskellmode#ListUnion(a:entry['explicit'], a:explicit)
+  let modules  = haskellmode#ListUnion(a:entry['modules'], [ a:module ])
+  return {'lines':lines,'hiding':hiding,'explicit':explicit,'modules':modules}
+endfunction
+
+" collect lines belonging to a single import statement;
+" return number of last line and collected import statement
+" (assume opening parenthesis, if any, is on the first line)
+function! haskellmode#GatherImport(lineno)
+  let lineno = a:lineno
+  let import = getline(lineno)
+  if !(import=~'^import\s') | return [] | endif
+  let open  = strlen(substitute(import,'[^(]','','g'))
+  let close = strlen(substitute(import,'[^)]','','g'))
+  while open!=close
+    let lineno += 1
+    let linecont = getline(lineno)
+    let open  += strlen(substitute(linecont,'[^(]','','g'))
+    let close += strlen(substitute(linecont,'[^)]','','g'))
+    let import .= linecont
+  endwhile
+  return [lineno,import]
+endfunction
+
+function! haskellmode#UrlEncode(string)
+  let pat  = '\([^[:alnum:]]\)'
+  let code = '\=printf("%%%02X",char2nr(submatch(1)))'
+  let url  = substitute(a:string,pat,code,'g')
+  return url
+endfunction
+
+" TODO: we could have buffer-local settings, at the expense of
+"       reconfiguring for every new buffer.. do we want to?
+function! haskellmode#GHC()
+  if (!exists("g:ghc") || !executable(g:ghc)) 
+    if !executable('ghc') 
+      echoerr s:scriptname.": can't find ghc. please set g:ghc, or extend $PATH"
+      return 0
+    else
+      let g:ghc = 'ghc'
+    endif
+  endif    
+  return 1
+endfunction
+
+function! haskellmode#GHC_Version()
+  if !exists("g:ghc_version")
+    let g:ghc_version = substitute(system(g:ghc . ' --numeric-version'),'\n','','')
+  endif
+  return g:ghc_version
+endfunction
+
+function! haskellmode#GHC_VersionGE(target)
+  let current = split(haskellmode#GHC_Version(), '\.' )
+  let target  = a:target
+  for i in current
+    if ((target==[]) || (i>target[0]))
+      return 1
+    elseif (i==target[0])
+      let target = target[1:]
+    else
+      return 0
+    endif
+  endfor
+  return 1
+endfunction
+
 doc/haskellmode.txt	[[[1
-437
-*haskellmode.txt*	Haskell Mode Plugins	10/04/2009
+465
+*haskellmode.txt*	Haskell Mode Plugins	02/05/2009
 
 Authors:
     Claus Reinke <claus.reinke@talk21.com> ~
@@ -1522,7 +1774,7 @@ CONTENTS                                                         *haskellmode*
     * HTML library documentation files and indices generated by Haddock ~
       These usually come with your GHC installation, possibly as a separate
       package. If you cannot get them this way, you can download a tar-ball
-      from  http://www.haskell.org/ghc/docs/latest/
+      matching your GHC version from  http://www.haskell.org/ghc/docs/
 
     * HTML browser with basic CSS support ~
       For browsing Haddock docs.
@@ -1553,6 +1805,8 @@ CONTENTS                                                         *haskellmode*
 |_T|                  insert type declaration for id under cursor
 |balloon|             show type for id under mouse pointer
 |_?|                  browse Haddock entry for id under cursor
+|_?1|                 search Hoogle for id under cursor
+|_?2|                 search Hayoo! for id under cursor
 |:IDoc| {identifier}  browse Haddock entry for unqualified {identifier}
 |:MDoc| {module}      browse Haddock entry for {module}
 |:FlagReference| {s}  browse Users Guide Flag Reference for section {s}
@@ -1583,10 +1837,19 @@ CONTENTS                                                         *haskellmode*
 
     The plugins try to find their dependencies in standard locations, so if
     you're lucky, you will only need to set |compiler| to ghc, and configure
-    the location of your favourite web browser. Given the variety of things to
-    guess, however, some dependencies might not be found correctly, or the
-    defaults might not be to your liking, in which case you can do some more
-    fine tuning. All of this configuration should happen in your |vimrc|.
+    the location of your favourite web browser. You will also want to make
+    sure that |filetype| detection and |syntax| highlighting are on. Given the
+    variety of things to guess, however, some dependencies might not be found
+    correctly, or the defaults might not be to your liking, in which case you
+    can do some more fine tuning. All of this configuration should happen in
+    your |vimrc|.
+>
+        " enable syntax highlighting
+        syntax on
+ 
+        " enable filetype detection and plugin loading
+        filetype plugin on
+<
 
                                                    *haskellmode-settings-main*
 2.1 GHC and web browser ~
@@ -1604,11 +1867,6 @@ CONTENTS                                                         *haskellmode*
 >
         :let g:ghc="/usr/bin/ghc-6.6.1"
 <
-
-                                                           *:GHCStaticOptions*
-:GHCStaticOptions       Edit the static GHC options for the current buffer.
-                        Useful for adding hidden packages (-package ghc).
-
                                                            *g:haddock_browser*
     The preferred HTML browser for viewing Haddock documentation can be set as
     follows:
@@ -1656,7 +1914,7 @@ CONTENTS                                                         *haskellmode*
     location, or in $HOME. To configure another directory for the index file,
     use: 
 >
-        :let g:haddock_indexfiledir="~/.vim"
+        :let g:haddock_indexfiledir="~/.vim/"
 <
                                                                       *g:wget*
     If you also want to try the experimental hpaste functionality, you might
@@ -1698,6 +1956,19 @@ CONTENTS                                                         *haskellmode*
                         type info. Usually, |:make| is prefered, as that will
                         refresh the cache only if GHCi reports no errors, and
                         show the errors otherwise.
+
+                                                           *:GHCStaticOptions*
+:GHCStaticOptions       Edit the static GHC options (more generally, options
+                        that cannot be set by in-file OPTIONS_GHC pragmas)
+                        for the current buffer. Useful for adding hidden 
+                        packages (-package ghc), or additional import paths
+                        (-isrc; you will then also want to augment |path|).
+                        If you have static options you want to set as
+                        defaults, you could use b:ghc_staticoptions, eg:
+>
+                        au FileType haskell let b:ghc_staticoptions = '-isrc'
+                        au FileType haskell setlocal path += src
+<
 
                                                                        *:GHCi*
 :GHCi {command/expr}    Run GHCi commands/expressions in the current module.                  
@@ -1793,6 +2064,15 @@ _?                      Open the Haddock entry (in |haddock_browser|) for an
                         command-line completion (CLI), if the identifier is
                         not qualified.
 
+                                                                         *_?1*
+_?1                     Search Hoogle (using |haddock_browser|) for an
+                        identifier under the cursor.
+
+
+                                                                         *_?2*
+_?2                     Search Hayoo! (using |haddock_browser|) for an
+                        identifier under the cursor.
+
                                                                        *:IDoc*
 :IDoc {identifier}      Open the Haddock entry for the unqualified
                         {identifier} in |haddock_browser|, suggesting possible
@@ -1882,9 +2162,9 @@ CTRL-X CTRL-U           User-defined insert mode name completion based on all
                                                        *haskellmode-resources*
 6. Additional Resources ~
 
-    An illustrated walk-through of these plugins is available at:
+    An quick screencast tour through of these plugins is available at:
 
-    http://projects.haskell.org/haskellmode-vim/vim.html
+    http://projects.haskell.org/haskellmode-vim/screencasts.html
 
     Other Haskell-related Vim plugins can be found here:
 
