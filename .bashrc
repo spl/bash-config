@@ -242,6 +242,12 @@ case ${OSTYPE} in
         ;;
 esac
 
+# Scala
+append_to_path "/usr/local/scala-2.8.0.final/bin"
+
+# Android SDK
+append_to_path "/Users/leather/Software/android/android-sdk-mac_86/tools"
+
 # TeX and LaTeX
 prepend_to_path "/usr/texbin"
 
