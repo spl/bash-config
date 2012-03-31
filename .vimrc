@@ -63,10 +63,13 @@ set expandtab
 " Wrap lines at 80 characters in insert mode.
 set textwidth=80
 
-if has("win32")
-  " Set the font for GUI in Windows.
-  if has("gui_running")
+if has("gui_running")
+  if has("win32")
+    " Set the font for GUI in Windows.
     set guifont=Lucida_Console:h9:
+  endif
+  if has("gui_macvim")
+    set guifont=DejaVu\ Sans\ Mono:h12
   endif
 endif
 
