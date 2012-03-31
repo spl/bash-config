@@ -237,8 +237,8 @@ prepend_to_path "/opt/local/share/man"
 # Java 1.6 for Mac
 case ${OSTYPE} in
     darwin*)
-        alias java16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java'
-        alias javac16='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/javac'
+        alias java='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java'
+        alias javac='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/javac'
         ;;
 esac
 
