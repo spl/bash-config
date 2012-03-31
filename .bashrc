@@ -216,25 +216,30 @@ esac
 # Prompt
 #-----------------------------------------------------------------------------
 
-PROMPT_TERM="\[${TERM_ESC}\w [\u@\h]\a\]"
-PROMPT_USERHOST="\[${FG_GREEN}\]\u@\h"
-PROMPT_PWD="\[${FG_CYAN}\]\w"
-PROMPT_RESET="\[${CRESET}\]"
+function set_prompt() {
+  local PROMPT_TERM="\[${TERM_ESC}\w [\u@\h]\a\]"
+  local PROMPT_USERHOST="\[${FG_GREEN}\]\u@\h"
+  local PROMPT_PWD="\[${FG_CYAN}\]\w"
+  local PROMPT_RESET="\[${CRESET}\]"
+  local PROMPT_GIT=""
 
-# The completion file should be sourced before this.
-if type -t __git_ps1 | grep -q "^function$"
-then
-  PROMPT_GIT="${FG_PURPLE}\$(__git_ps1 '(%s)')"
-fi
+  # The completion file should be sourced before this.
+  if type -t __git_ps1 | grep -q "^function$"
+  then
+    PROMPT_GIT="${FG_PURPLE}\$(__git_ps1 '(%s)')"
+  fi
 
-case ${TERM} in
-  xterm*|rxvt*|Eterm|aterm|kterm|gnome)
-    PS1="\n${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD} ${PROMPT_GIT}${PROMPT_RESET}\n\$ "
-    ;;
-  screen)
-    PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/$HOME/~}\033\\"'
-    ;;
-esac
+  case ${TERM} in
+    xterm*|rxvt*|Eterm|aterm|kterm|gnome)
+      PS1="\n${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD} ${PROMPT_GIT}${PROMPT_RESET}\n\$ "
+      ;;
+    screen)
+      PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/$HOME/~}\033\\"'
+      ;;
+  esac
+}
+set_prompt
+unset set_prompt
 
 #-------------------------------------------------------------------------------
 # Git prompt
