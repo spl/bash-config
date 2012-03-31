@@ -172,6 +172,17 @@ if [[ -f ~/.dir_colors ]]; then
     eval `dircolors -b ~/.dir_colors`
 fi
 
+# For OpenBSD, change terminal in order to use colors in termcap(5).
+case ${OSTYPE} in
+    openbsd*)
+        case ${TERM} in
+            xterm*|rxvt*|Eterm|aterm|kterm|gnome)
+                TERM='xterm-xfree86'
+                ;;
+        esac
+        ;;
+esac
+
 #-----------------------------------------------------------------------------
 # History
 #-----------------------------------------------------------------------------
