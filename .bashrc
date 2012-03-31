@@ -173,30 +173,6 @@ if [[ -f ~/.dir_colors ]]; then
 fi
 
 #-----------------------------------------------------------------------------
-# X terminal
-#-----------------------------------------------------------------------------
-
-PROMPT_TERM="\[${TERM_ESC}\w [\u@\h]\a\]"
-PROMPT_USERHOST="\[${FG_GREEN}\]\u@\h"
-PROMPT_PWD="\[${FG_CYAN}\]\w"
-PROMPT_RESET="\[${CRESET}\]"
-
-if type -t __git_ps1 | grep -q "^function$"
-then
-  PROMPT_GIT="${FG_PURPLE}\$(__git_ps1 '(%s)')"
-fi
-
-# Set the prompt and the terminal window title
-case ${TERM} in
-    xterm*|rxvt*|Eterm|aterm|kterm|gnome)
-        PS1="\n${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD} ${PROMPT_GIT}${PROMPT_RESET}\n\$ "
-        ;;
-    screen)
-        PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/$HOME/~}\033\\"'
-        ;;
-esac
-
-#-----------------------------------------------------------------------------
 # History
 #-----------------------------------------------------------------------------
 
@@ -233,6 +209,30 @@ case ${OSTYPE} in
     ;;
   darwin*)
     source_script /opt/local/etc/bash_completion
+    ;;
+esac
+
+#-----------------------------------------------------------------------------
+# Prompt
+#-----------------------------------------------------------------------------
+
+PROMPT_TERM="\[${TERM_ESC}\w [\u@\h]\a\]"
+PROMPT_USERHOST="\[${FG_GREEN}\]\u@\h"
+PROMPT_PWD="\[${FG_CYAN}\]\w"
+PROMPT_RESET="\[${CRESET}\]"
+
+# The completion file should be sourced before this.
+if type -t __git_ps1 | grep -q "^function$"
+then
+  PROMPT_GIT="${FG_PURPLE}\$(__git_ps1 '(%s)')"
+fi
+
+case ${TERM} in
+  xterm*|rxvt*|Eterm|aterm|kterm|gnome)
+    PS1="\n${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD} ${PROMPT_GIT}${PROMPT_RESET}\n\$ "
+    ;;
+  screen)
+    PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/$HOME/~}\033\\"'
     ;;
 esac
 
