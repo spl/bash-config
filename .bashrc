@@ -374,6 +374,7 @@ append_to_path "/usr/local/scala-2.8.0.final/bin"
 
 # Android SDK
 append_to_path "/Users/leather/Software/android/android-sdk-mac_86/tools"
+append_to_path "/Users/leather/Software/android/android-sdk-mac_86/platform-tools"
 
 # TeX and LaTeX - using MacPorts instead
 #prepend_to_path "/usr/texbin"
