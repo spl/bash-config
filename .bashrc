@@ -286,20 +286,8 @@ GIT_PS1_SHOWUPSTREAM="auto"
 # application.  To override the alias instruction use a \ before, ie
 # \rm will call the real rm not the alias.
 
-# List the files in the directory with these options:
-# - show all (-a)
-# - classify (-F)
-# - human-readable sizes (-h)
-# - color
-case ${OSTYPE} in
-    linux-gnu|cygwin)
-        alias ls='ls -aFh --color=auto'
-        ;;
-    darwin*)
-        alias ls='ls -aFhG'
-        ;;
-esac
-alias ll='ls -l'
+# Directory listing
+alias ll='ls -al'
 
 # Preserve mode, ownership, and timestamps
 alias cp='cp -p'
