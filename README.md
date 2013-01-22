@@ -1,4 +1,3 @@
-
 Introduction
 ------------
 
@@ -11,7 +10,7 @@ Usage
 Create the appropriate links from $HOME to each of the files in
 this repository.
 
-`.bashrc`       - the primary configuration file
-`.bash_logout`  - logout script
-`.bash_profile` - loads `.bashrc`
+ * `.bashrc`       - the primary configuration file
+ * `.bash_logout`  - logout script
+ * `.bash_profile` - loads `.bashrc`
 
