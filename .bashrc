@@ -204,18 +204,7 @@ export HISTIGNORE="[   ]*:&:bg:fg:exit"
 # Define to avoid flattening internal contents of tar files
 # COMP_TAR_INTERNAL_PATHS=1
 
-# Source the bash completion profile
-case ${OSTYPE} in
-  linux-gnu) # Gentoo
-    source_script /etc/profile.d/bash-completion
-    ;;
-  cygwin)
-    source_script /etc/bash_completion
-    ;;
-  darwin*)
-    source_script /opt/local/etc/bash_completion
-    ;;
-esac
+# See .bashrc.local for the bash completion profile
 
 #-----------------------------------------------------------------------------
 # Prompt
