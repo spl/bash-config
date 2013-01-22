@@ -13,4 +13,5 @@ this repository.
  * `.bashrc`       - the primary configuration file
  * `.bash_logout`  - logout script
  * `.bash_profile` - loads `.bashrc`
+ * `.inputrc`      - readline configuration file
 
