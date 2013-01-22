@@ -327,67 +327,6 @@ alias grep='grep -I --color'
 alias bc='bc -l'
 
 #-----------------------------------------------------------------------------
-# Mac OS
-#-----------------------------------------------------------------------------
-
-# Tell 'tar' (and others?) to not include extended attributes when copying.
-# This removes the annoying '._blah' file for every 'blah' file.
-export COPY_EXTENDED_ATTRIBUTES_DISABLE=true
-
-#-----------------------------------------------------------------------------
-# MacPorts
-#-----------------------------------------------------------------------------
-
-# According to (http://guide.macports.org/#installing.shell).
-# These should come before normal paths for some apps. There was a problem with
-# git-svn and Perl paths.
-prepend_to_path "/opt/local/bin"
-prepend_to_path "/opt/local/sbin"
-prepend_to_path "/opt/local/share/man"
-
-#-----------------------------------------------------------------------------
-# Application-specific
-#-----------------------------------------------------------------------------
-
-# These are specific to certain applications I run. I generally want them only
-# at certain sites and not polluting the environment at the others.
-
-# Java 1.6 for Mac
-case ${OSTYPE} in
-    darwin*)
-        alias java='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java'
-        alias javac='/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/javac'
-        ;;
-esac
-
-# Scala
-append_to_path "/usr/local/scala-2.8.0.final/bin"
-
-# Android SDK
-append_to_path "/Users/leather/Software/android/android-sdk-mac_86/tools"
-append_to_path "/Users/leather/Software/android/android-sdk-mac_86/platform-tools"
-
-# TeX and LaTeX - using MacPorts instead
-#prepend_to_path "/usr/texbin"
-
-# GHC
-append_to_path "/opt/ghc/bin"
-append_to_path "$HOME/.ghc-config/ghc/bin"
-[[ -x "/opt/ghc/bin" ]] && /opt/ghc/bin/ghc-config -i
-# TODO: Change Bean to use the above for GHC
-append_to_path "/usr/local/ghc-6.8.2-ppc-tiger/bin"
-
-# Cabalized apps
-prepend_to_path ${HOME}/.cabal/bin
-
-#-----------------------------------------------------------------------------
-# Nix
-#-----------------------------------------------------------------------------
-
-# Set up the Nix environment and prepend the paths
-source_script /nix/etc/profile.d/nix.sh
-
-#-----------------------------------------------------------------------------
 # Local configuration
 #-----------------------------------------------------------------------------
 
