@@ -15,3 +15,10 @@ this repository.
  * `.bash_profile` - loads `.bashrc`
  * `.inputrc`      - readline configuration file
 
+Create a `.bashrc.local` file for the machine-local configuration.
+
+If you are using *bash_completion*, make a symlink from the global
+`bash_completion` file to `.bash_completion.local` in $HOME. You can use
+`make_symlink` in your `.bashrc.local` to ensure this link exists at shell
+startup.
+

@@ -137,6 +137,14 @@ function source_script()
     fi
 }
 
+# Make a symbolic link if the link does not already exist and the source exists
+function make_symlink()
+{
+    if [[ !(-f "${2}") && -f "${1}" ]]; then
+        ln -s "${1}" "${2}"
+    fi
+}
+
 # Set ${1} to the first valid directory from the argument list. If none exists,
 # set ${1} to "". The first argument should be a reference, not a variable. In
 # other words, use VALID_DIR instead of ${VALID_DIR}. The remaining arguments
@@ -215,7 +223,8 @@ export HISTIGNORE="[   ]*:&:bg:fg:exit"
 # Define to avoid flattening internal contents of tar files
 # COMP_TAR_INTERNAL_PATHS=1
 
-# See .bashrc.local for the bash completion profile
+# Source the local bash_completion symlink
+source_script .bash_completion.local
 
 #-----------------------------------------------------------------------------
 # Prompt
@@ -226,17 +235,16 @@ function set_prompt() {
   local PROMPT_USERHOST="\[${FG_GREEN}\]\u@\h"
   local PROMPT_PWD="\[${FG_CYAN}\]\w"
   local PROMPT_RESET="\[${CRESET}\]"
-  local PROMPT_GIT=""
-
-  # The completion file should be sourced before this.
-  if type -t __git_ps1 | grep -q "^function$"
-  then
-    PROMPT_GIT="${FG_PURPLE}\$(__git_ps1 '(%s)')"
-  fi
 
   case ${TERM} in
     xterm*|rxvt*|Eterm|aterm|kterm|gnome)
-      PS1="\n${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD} ${PROMPT_GIT}${PROMPT_RESET}\n\$ "
+      # The completion file must be sourced before checking for __git_ps1.
+      if type -t __git_ps1 | grep -q "^function$"
+      then
+        PROMPT_COMMAND="__git_ps1 '\n${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD}' '${PROMPT_RESET}\n\$ '"
+      else
+        PS1="\n${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD} ${PROMPT_RESET}\n\$ "
+      fi
       ;;
     screen)
       PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/$HOME/~}\033\\"'
@@ -261,10 +269,16 @@ GIT_PS1_SHOWDIRTYSTATE=1
 # '$' will be shown next to the branch name.
 GIT_PS1_SHOWSTASHSTATE=1
 
+# If you would like a colored hint about the current dirty state, set
+# GIT_PS1_SHOWCOLORHINTS to a nonempty value. The colors are based on the
+# colored output of "git status -sb" and are available only when using __git_ps1
+# for PROMPT_COMMAND or precmd.
+GIT_PS1_SHOWCOLORHINTS=1
+
 # If you would like to see if there're untracked files, then you can set
 # GIT_PS1_SHOWUNTRACKEDFILES to a nonempty value. If there're untracked files,
 # then a '%' will be shown next to the branch name.
-#GIT_PS1_SHOWUNTRACKEDFILES=1
+GIT_PS1_SHOWUNTRACKEDFILES=1
 
 # If you would like to see the difference between HEAD and its upstream, set
 # GIT_PS1_SHOWUPSTREAM="auto".  A "<" indicates you are behind, ">" indicates
@@ -343,3 +357,4 @@ if [[ "${USER}" == "root" ]]; then
 fi
 
 export PATH MANPATH INFOPATH
+
