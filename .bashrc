@@ -29,7 +29,7 @@ FG_YELLOW='\e[0;33m'
 FG_BLUE='\e[0;34m'
 FG_PURPLE='\e[0;35m'
 FG_CYAN='\e[0;36m'
-FG_WHITE='\e[0;37m'
+FG_LTGRAY='\e[0;37m'
 
 # Bold foreground
 FG_BBLACK='\e[1;30m'
@@ -235,19 +235,23 @@ function set_prompt() {
   local PROMPT_USERHOST="\[${FG_GREEN}\]\u@\h"
   local PROMPT_PWD="\[${FG_CYAN}\]\w"
   local PROMPT_RESET="\[${CRESET}\]"
+  local PROMPT_TIME="\[${FG_LTGRAY}\]\$(date +%H:%M:%S)"
+  local PROMPT_BEGIN="${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD}"
+  local PROMPT_END="${PROMPT_TIME}${PROMPT_RESET} \$ "
+  local PROMPT_SCREEN="\[${FG_BBLUE}\][screen:${WINDOW}]"
 
   case ${TERM} in
     xterm*|rxvt*|Eterm|aterm|kterm|gnome)
       # The completion file must be sourced before checking for __git_ps1.
       if type -t __git_ps1 | grep -q "^function$"
       then
-        PROMPT_COMMAND="__git_ps1 '\n${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD}' '${PROMPT_RESET}\n\$ '"
+        PROMPT_COMMAND="__git_ps1 '\n${PROMPT_BEGIN}' '\n${PROMPT_END}'"
       else
-        PS1="\n${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD} ${PROMPT_RESET}\n\$ "
+        PS1="\n${PROMPT_BEGIN}\n${PROMPT_END}"
       fi
       ;;
     screen)
-      PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/$HOME/~}\033\\"'
+      PS1="\n${PROMPT_SCREEN} ${PROMPT_BEGIN}\n${PROMPT_END}"
       ;;
   esac
 }
