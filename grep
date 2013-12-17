@@ -1,0 +1,6 @@
+#!/bin/sh
+# This is a script instead of an alias, so that it can be used in xargs.
+exec /usr/bin/grep -sI --color "$@"
+# - Suppress error messages about nonexistent or unreadable files
+# - Don't match binary files
+# - Show match in color

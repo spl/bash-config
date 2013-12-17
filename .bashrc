@@ -321,11 +321,6 @@ alias cp='cp -p'
 alias df='df -h'
 alias du='du -h'
 
-# Suppress error messages about nonexistent or unreadable files
-# Don't match binary files
-# Show match in color
-alias grep='grep -sI --color'
-
 # Use floating point math
 alias bc='bc -l'
 

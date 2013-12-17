@@ -7,13 +7,16 @@ with Bash across various platforms.
 Usage
 -----
 
-Create the appropriate links from $HOME to each of the files in
-this repository.
+Create the appropriate links in $HOME to each of these files:
 
  * `.bashrc`       - the primary configuration file
  * `.bash_logout`  - logout script
  * `.bash_profile` - loads `.bashrc`
  * `.inputrc`      - readline configuration file
+
+Create the appropriate links in $HOME/bin to each of these files:
+
+ * `grep`          - /usr/bin/grep with flags
 
 Create a `.bashrc.local` file for the machine-local configuration.
 
