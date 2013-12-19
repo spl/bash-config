@@ -282,7 +282,7 @@ GIT_PS1_SHOWCOLORHINTS=1
 # If you would like to see if there're untracked files, then you can set
 # GIT_PS1_SHOWUNTRACKEDFILES to a nonempty value. If there're untracked files,
 # then a '%' will be shown next to the branch name.
-GIT_PS1_SHOWUNTRACKEDFILES=1
+#GIT_PS1_SHOWUNTRACKEDFILES=1
 
 # If you would like to see the difference between HEAD and its upstream, set
 # GIT_PS1_SHOWUPSTREAM="auto".  A "<" indicates you are behind, ">" indicates
