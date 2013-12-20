@@ -328,6 +328,9 @@ alias du='du -h'
 # Use floating point math
 alias bc='bc -l'
 
+# find, grep, ack aliases
+alias ackhs='ack --haskell --pager="less -r"'
+
 #-----------------------------------------------------------------------------
 # Local configuration
 #-----------------------------------------------------------------------------
