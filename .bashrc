@@ -231,32 +231,41 @@ source_script .bash_completion.local
 #-----------------------------------------------------------------------------
 
 function set_prompt() {
-  local PROMPT_TERM="\[${TERM_ESC}\w [\u@\h]\a\]"
-  local PROMPT_USERHOST="\[${FG_GREEN}\]\u@\h"
-  local PROMPT_PWD="\[${FG_CYAN}\]\w"
-  local PROMPT_RESET="\[${CRESET}\]"
-  local PROMPT_TIME="\[${FG_LTGRAY}\]\$(date +%H:%M:%S)"
-  local PROMPT_BEGIN="${PROMPT_TERM}${PROMPT_USERHOST}:${PROMPT_PWD}"
-  local PROMPT_END="${PROMPT_TIME}${PROMPT_RESET} \$ "
-  local PROMPT_SCREEN="\[${FG_BBLUE}\][screen:${WINDOW}]"
+    local c_reset="\[${CRESET}\]"
+    local c_userhost="\[${FG_GREEN}\]"
+    local c_pwd="\[${FG_CYAN}\]"
+    local c_time="\[${FG_LTGRAY}\]"
+    local c_jobs="\[${FG_PURPLE}\]"
 
-  case ${TERM} in
-    xterm*|rxvt*|Eterm|aterm|kterm|gnome)
-      # The completion file must be sourced before checking for __git_ps1.
-      if type -t __git_ps1 | grep -q "^function$"
-      then
-        PROMPT_COMMAND="__git_ps1 '\n${PROMPT_BEGIN}' '\n${PROMPT_END}'"
-      else
-        PS1="\n${PROMPT_BEGIN}\n${PROMPT_END}"
-      fi
-      ;;
-    screen)
-      PS1="\n${PROMPT_SCREEN} ${PROMPT_BEGIN}\n${PROMPT_END}"
-      ;;
-  esac
+    # Title bar
+    local prefix="\[${TERM_ESC}\w [\u@\h]\a\]"
+
+    case ${TERM} in
+        xterm*|rxvt*|Eterm|aterm|kterm|gnome)
+            ;;
+        screen)
+            local c_screen="\[${FG_BBLUE}\]"
+            prefix+=("${c_screen}[screen:${WINDOW}]${c_reset} ")
+            ;;
+    esac
+
+    local njobs="$(jobs -p | wc -l)"
+    if [[ "${njobs}" -gt 0 ]]; then
+        prefix+=("${c_jobs}[${njobs##* }]${c_reset} ")
+    fi
+
+    local top="\n${prefix[@]}${c_userhost}\u@\h${c_reset}:${c_pwd}\w${c_reset}"
+    local bottom="\n${c_time}$(date +%H:%M:%S)${c_reset} \$ "
+
+    if type -t __git_ps1 | grep -q "function"; then
+        # The completion file must be sourced before using __git_ps1.
+        __git_ps1 "${top}" "${bottom}"
+    else
+        export PS1="${top}${bottom}"
+    fi
 }
-set_prompt
-unset set_prompt
+
+export PROMPT_COMMAND=set_prompt
 
 #-------------------------------------------------------------------------------
 # Git prompt
