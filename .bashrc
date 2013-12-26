@@ -340,6 +340,8 @@ alias bc='bc -l'
 # find, grep, ack aliases
 alias ackhs='ack --haskell --pager="less -r"'
 
+alias chrome='open -a Google\ Chrome'
+
 #-----------------------------------------------------------------------------
 # Local configuration
 #-----------------------------------------------------------------------------
