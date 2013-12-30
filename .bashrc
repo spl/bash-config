@@ -137,6 +137,16 @@ function source_script()
     fi
 }
 
+# Source all scripts in directory if the directory exists
+function source_dir()
+{
+    if [[ -d "${1}" ]]; then
+        for f in "$(/bin/ls ${1})"; do
+            source_script "${1}/${f}"
+        done
+    fi
+}
+
 # Make a symbolic link if the link does not already exist and the source exists
 function make_symlink()
 {
@@ -225,6 +235,9 @@ export HISTIGNORE="[   ]*:&:bg:fg:exit"
 
 # Source the local bash_completion symlink
 source_script .bash_completion.local
+
+# Source local bash completion scripts
+source_dir .bash_completion.d
 
 #-----------------------------------------------------------------------------
 # Prompt
