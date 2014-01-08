@@ -322,11 +322,17 @@ GIT_PS1_SHOWCOLORHINTS=1
 GIT_PS1_SHOWUPSTREAM="auto"
 
 #-----------------------------------------------------------------------------
-# Vim
+# Environment
 #-----------------------------------------------------------------------------
 
 # Set editor
 [[ -x /usr/bin/vim ]] && export EDITOR=vim
+
+# less options
+export LESS=FRSX
+
+# ack pager
+export ACK_PAGER=less
 
 #-----------------------------------------------------------------------------
 # Aliases
@@ -350,8 +356,8 @@ alias du='du -h'
 # Use floating point math
 alias bc='bc -l'
 
-# find, grep, ack aliases
-alias ackhs='ack --haskell --pager="less -r"'
+# ack for Haskell
+alias ackhs='ack --haskell'
 
 alias chrome='open -a Google\ Chrome'
 
