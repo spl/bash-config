@@ -251,7 +251,7 @@ function set_prompt() {
     local c_jobs="\[${FG_PURPLE}\]"
 
     # Title bar
-    local prefix="\[${TERM_ESC}\w [\u@\h]\a\]"
+    local prefix="\[${TERM_ESC}\W [\u@\h]\a\]"
 
     case ${TERM} in
         xterm*|rxvt*|Eterm|aterm|kterm|gnome)
@@ -262,11 +262,13 @@ function set_prompt() {
             ;;
     esac
 
+    # Background jobs
     local njobs="$(jobs -p | wc -l)"
     if [[ "${njobs}" -gt 0 ]]; then
         prefix+=("${c_jobs}[${njobs##* }]${c_reset} ")
     fi
 
+    # Prompt: 2 lines
     local top="\n${prefix[@]}${c_userhost}\u@\h${c_reset}:${c_pwd}\w${c_reset}"
     local bottom="\n${c_time}$(date +%H:%M:%S)${c_reset} \$ "
 
