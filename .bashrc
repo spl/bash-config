@@ -187,6 +187,16 @@ prepend_to_path "/usr/bin"
 prepend_to_path "/usr/local/bin"
 
 #-----------------------------------------------------------------------------
+# grep
+#-----------------------------------------------------------------------------
+
+if [[ -f "/usr/bin/grep" ]]; then
+    export GREP=/usr/bin/grep
+elif [[ -f "/bin/grep" ]]; then
+    export GREP=/bin/grep
+fi
+
+#-----------------------------------------------------------------------------
 # Directory colors
 #-----------------------------------------------------------------------------
 
@@ -272,7 +282,7 @@ function set_prompt() {
     local top="\n${prefix[@]}${c_userhost}\u@\h${c_reset}:${c_pwd}\w${c_reset}"
     local bottom="\n${c_time}$(date +%H:%M:%S)${c_reset} \$ "
 
-    if type -t __git_ps1 | grep -q "function"; then
+    if type -t __git_ps1 | ${GREP} -q "function"; then
         # The completion file must be sourced before using __git_ps1.
         __git_ps1 "${top}" "${bottom}"
     else
