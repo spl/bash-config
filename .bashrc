@@ -150,7 +150,7 @@ function source_dir()
 # Make a symbolic link if the link does not already exist and the source exists
 function make_symlink()
 {
-    if [[ !(-f "${2}") && -f "${1}" ]]; then
+    if [[ ! (-f "${2}") && -f "${1}" ]]; then
         ln -s "${1}" "${2}"
     fi
 }
