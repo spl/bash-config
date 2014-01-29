@@ -221,12 +221,22 @@ esac
 #-----------------------------------------------------------------------------
 
 # Don't put duplicate lines in the history
-export HISTCONTROL=ignoredups
 # Erase previous entries of command
-export HISTCONTROL=erasedups
+export HISTCONTROL=ignoredups:erasedups
 
 # Ignore some controlling instructions
 export HISTIGNORE="[   ]*:&:bg:fg:exit"
+
+# Append to the history file, don't overwrite it
+shopt -s histappend
+
+#-----------------------------------------------------------------------------
+# Bash configuration
+#-----------------------------------------------------------------------------
+
+# Check the window size after each command and, if necessary, update the values
+# of LINES and COLUMNS.
+shopt -s checkwinsize
 
 #-----------------------------------------------------------------------------
 # Bash completion
@@ -371,7 +381,8 @@ alias bc='bc -l'
 # ack for Haskell
 alias ackhs='ack --haskell'
 
-alias chrome='open -a Google\ Chrome'
+# Google Chrome
+[[ -d "/Applications/Google Chrome.app" ]] && alias chrome='open -a Google\ Chrome'
 
 #-----------------------------------------------------------------------------
 # Local configuration
