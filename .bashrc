@@ -394,8 +394,9 @@ source_script .bashrc.local
 # Common private directories (should be almost last)
 #-----------------------------------------------------------------------------
 
-# Set PATH to include my private bin if it exists
-[[ -d "${HOME}/bin" ]] && PATH=${HOME}/bin:${PATH}
+# Set $PATH to include my private bin and .cabal/bin
+prepend_to_path "${HOME}/.cabal/bin"
+prepend_to_path "${HOME}/bin"
 
 # Set MANPATH to include my private man if it exists
 [[ -d "${HOME}/man" ]] && MANPATH=${HOME}/man:${MANPATH}
