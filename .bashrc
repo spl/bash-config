@@ -254,10 +254,10 @@ shopt -s checkwinsize
 # COMP_TAR_INTERNAL_PATHS=1
 
 # Source the local bash_completion symlink
-source_script .bash_completion.local
+source_script $HOME/.bash_completion.local
 
 # Source local bash completion scripts
-source_dir .bash_completion.d
+source_dir $HOME/.bash_completion.d
 
 #-----------------------------------------------------------------------------
 # Prompt
@@ -393,7 +393,7 @@ alias ackhs='ack --haskell'
 # Local configuration
 #-----------------------------------------------------------------------------
 
-source_script .bashrc.local
+source_script $HOME/.bashrc.local
 
 #-----------------------------------------------------------------------------
 # Common private directories (should be almost last)
