@@ -276,20 +276,25 @@ function set_prompt() {
     case ${TERM} in
         xterm*|rxvt*|Eterm|aterm|kterm|gnome)
             ;;
-        screen)
+        screen*)
+            # [tmux] or [screen]
             local c_screen="\[${FG_BBLUE}\]"
-            prefix+=("${c_screen}[screen:${WINDOW}]${c_reset} ")
+            if [ -n "$TMUX" ]; then
+                prefix+="${c_screen}[tmux]${c_reset} "
+            else
+                prefix+="${c_screen}[screen:${WINDOW}]${c_reset} "
+            fi
             ;;
     esac
 
     # Background jobs
     local njobs="$(jobs -p | wc -l)"
     if [[ "${njobs}" -gt 0 ]]; then
-        prefix+=("${c_jobs}[${njobs##* }]${c_reset} ")
+        prefix+="${c_jobs}[${njobs##* }]${c_reset} "
     fi
 
     # Prompt: 2 lines
-    local top="\n${prefix[@]}${c_userhost}\u@\h${c_reset}:${c_pwd}\w${c_reset}"
+    local top="\n$prefix${c_userhost}\u@\h${c_reset}:${c_pwd}\w${c_reset}"
     local bottom="\n${c_time}$(date +%H:%M:%S)${c_reset} \$ "
 
     if type -t __git_ps1 | ${GREP} -q "function"; then
