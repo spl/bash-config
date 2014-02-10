@@ -384,7 +384,10 @@ alias du='du -h'
 alias bc='bc -l'
 
 # ack for Haskell
-alias ackhs='ack --haskell'
+hash ack 2>/dev/null && alias ackhs='ack --haskell'
+
+# Git
+hash git 2>/dev/null && alias g='git'
 
 # Google Chrome
 [[ -d "/Applications/Google Chrome.app" ]] && alias chrome='open -a Google\ Chrome'
