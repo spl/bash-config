@@ -386,8 +386,12 @@ alias bc='bc -l'
 # ack for Haskell
 hash ack 2>/dev/null && alias ackhs='ack --haskell'
 
-# Git
-hash git 2>/dev/null && alias g='git'
+# Git alias with bash completion
+hash git &> /dev/null && alias g='git'
+source_script /usr/share/bash-completion/completions/git
+if type __git_complete &> /dev/null; then
+    __git_complete g __git_main
+fi
 
 # Google Chrome
 [[ -d "/Applications/Google Chrome.app" ]] && alias chrome='open -a Google\ Chrome'
