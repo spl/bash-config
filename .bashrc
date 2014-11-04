@@ -200,9 +200,9 @@ fi
 # Directory colors
 #-----------------------------------------------------------------------------
 
-# Enable colors for ls, etc. Prefer ~/.dir_colors
-if [[ -f ~/.dir_colors ]]; then
-    eval `dircolors -b ~/.dir_colors`
+# Enable colors for ls, etc. Prefer $HOME/.dir_colors
+if [[ -f $HOME/.dir_colors ]]; then
+    eval `dircolors -b $HOME/.dir_colors`
 fi
 
 # For OpenBSD, change terminal in order to use colors in termcap(5).
