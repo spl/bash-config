@@ -290,7 +290,7 @@ function set_prompt() {
             ;;
         screen*)
             # [tmux] or [screen]
-            local c_screen="\[${FG_BBLUE}\]"
+            local c_screen="\[${FG_BLUE}\]"
             if [ -n "$TMUX" ]; then
                 prefix+="${c_screen}[tmux]${c_reset} "
             else
