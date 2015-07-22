@@ -279,6 +279,12 @@ function set_prompt() {
     # Title bar
     local prefix="\[${TERM_ESC}\W [\u@\h]\a\]"
 
+    # nix-shell
+    if [[ "$IN_NIX_SHELL" -eq 1 ]]; then
+        local c_nix="\[${FG_RED}\]"
+        prefix+="${c_nix}[nix]${c_reset} "
+    fi
+
     case ${TERM} in
         xterm*|rxvt*|Eterm|aterm|kterm|gnome)
             ;;
