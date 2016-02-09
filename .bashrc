@@ -395,6 +395,9 @@ alias du='du -h'
 # Use floating point math
 alias bc='bc -l'
 
+# ssh while ignoring the host
+alias sshNoHostChecking='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+
 # ack for Haskell
 hash ack 2>/dev/null && alias ackhs='ack --haskell'
 
