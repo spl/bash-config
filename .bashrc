@@ -401,6 +401,11 @@ alias sshNoHostChecking='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChe
 # ack for Haskell
 hash ack 2>/dev/null && alias ackhs='ack --haskell'
 
+# Delete docker images or processes or both
+hash docker 2>/dev/null && alias docker-clean-images='X=$(docker images -q -f dangling=true) [ -z "$X" ] || docker rmi $X'
+hash docker 2>/dev/null && alias docker-clean-processes='X=$(docker ps -a -q -f status=exited) [ -z "$X" ] || docker rm -v $X'
+hash docker 2>/dev/null && alias docker-clean-all='docker-clean-images; docker-clean-processes'
+
 # Git alias with bash completion
 hash git &> /dev/null && alias g='git'
 source_script /usr/share/bash-completion/completions/git
