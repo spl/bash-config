@@ -129,6 +129,22 @@ function append_to_path()
     fi
 }
 
+# Append directory, if it exists, to MANPATH
+function append_to_manpath()
+{
+    if [[ -d "${1}" ]]; then
+        MANPATH=${MANPATH}:${1}
+    fi
+}
+
+# Append directory, if it exists, to INFOPATH
+function append_to_infopath()
+{
+    if [[ -d "${1}" ]]; then
+        INFOPATH=${INFOPATH}:${1}
+    fi
+}
+
 # Source script if it exists
 function source_script()
 {
@@ -430,11 +446,9 @@ source_script $HOME/.bashrc.local
 prepend_to_path "${HOME}/.cabal/bin"
 prepend_to_path "${HOME}/bin"
 
-# Set MANPATH to include my private man if it exists
-[[ -d "${HOME}/man" ]] && MANPATH=${HOME}/man:${MANPATH}
-
-# Set INFOPATH to include my private info if it exists
-[[ -d "${HOME}/info" ]] && INFOPATH=${HOME}/info:${INFOPATH}
+# Add my home directories to MANPATH and INFOPATH
+append_to_manpath "${HOME}/man"
+append_to_infopath "${HOME}/info"
 
 #-----------------------------------------------------------------------------
 # Final exports
