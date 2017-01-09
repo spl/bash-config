@@ -21,7 +21,18 @@ Put your local (machine-specific) Bash configuration in `$HOME/.bashrc.local`.
 
 ## Bash Completion
 
-If you're using bash completion, make a symlink from the global
-`bash_completion` file to `.bash_completion.local` in `$HOME`. You can use the
-`make_symlink` function in `$HOME/.bashrc.local` to ensure this link exists at
-shell startup.
+If you're using Bash completion, add one of the following lines with the global
+completion file (e.g. `/usr/local/etc/bash_completion`) to your
+`$HOME/.bashrc.local`:
+
+1. source the global completion file:
+
+   ```sh
+   source_script /usr/local/etc/bash_completion
+   ```
+
+2. make a symbolic link to `$HOME/.bash_completion.local`:
+
+   ```sh
+   make_symlink /usr/local/etc/bash_completion "$HOME/.bashrc.local"
+   ```
