@@ -5,27 +5,23 @@ with Bash across various platforms.
 
 # Usage
 
-Create a link in `$HOME` to each of these files:
+Run the [`install.sh`](./install.sh) script.
 
- * `.bashrc`       - the primary configuration file
- * `.bash_logout`  - logout script
- * `.bash_profile` - loads `.bashrc`
- * `.inputrc`      - readline configuration file
+## Path
 
-Create a link in `$HOME/bin` to each of these files:
+Update your `$PATH` if it does not already have this:
 
- * `grep`          - /usr/bin/grep with flags
+```
+$ export PATH=$HOME/bin:$PATH
+```
 
-Create a `.bashrc.local` file for the machine-local configuration.
+## Local Bash Configuration
+
+Put your local (machine-specific) Bash configuration in `$HOME/.bashrc.local`.
 
 ## Bash Completion
 
 If you're using bash completion, make a symlink from the global
-`bash_completion` file to `.bash_completion.local` in `$HOME`. You can use
-`make_symlink` in your `.bashrc.local` to ensure this link exists at shell
-startup.
-
-Create a `$HOME/.bash_completion.d` directory with a symlink to each of these
-files:
-
- * `cabal`
+`bash_completion` file to `.bash_completion.local` in `$HOME`. You can use the
+`make_symlink` function in `$HOME/.bashrc.local` to ensure this link exists at
+shell startup.
