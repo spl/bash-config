@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 # Symbolic link with force and don't follow existing link
 LN="ln -nsf --"
