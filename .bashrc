@@ -443,9 +443,10 @@ source_script $HOME/.bashrc.local
 # Common private directories (should be almost last)
 #-----------------------------------------------------------------------------
 
-# Set $PATH to include my private bin and .cabal/bin
+# Add user bin directories to PATH
 prepend_to_path "${HOME}/.cabal/bin"
 prepend_to_path "${HOME}/.local/bin"
+prepend_to_path "${HOME}/.cargo/bin"
 prepend_to_path "${HOME}/bin"
 
 # Add my home directories to MANPATH and INFOPATH
