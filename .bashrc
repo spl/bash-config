@@ -295,6 +295,11 @@ function set_prompt() {
     # Title bar
     local prefix="\[${TERM_ESC}\W [\u@\h]\a\]"
 
+    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+        local c_ssh="\[${FG_PURPLE}\]"
+        prefix+="${c_ssh}[ssh]${c_reset} "
+    fi
+
     # nix-shell
     if [[ "$IN_NIX_SHELL" -eq 1 ]]; then
         local c_nix="\[${FG_RED}\]"
