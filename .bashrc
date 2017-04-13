@@ -404,6 +404,16 @@ export ACK_PAGER=less
 # \rm will call the real rm not the alias.
 
 # Directory listing
+
+case ${OSTYPE} in
+    linux*)
+        alias ls='ls -Fh --color=auto'
+        ;;
+    darwin*)
+        alias ls='ls -FhG'
+        ;;
+esac
+
 alias ll='ls -al'
 
 # Preserve mode, ownership, and timestamps
