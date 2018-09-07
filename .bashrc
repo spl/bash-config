@@ -250,12 +250,26 @@ esac
 # History
 #-----------------------------------------------------------------------------
 
-# Don't put duplicate lines in the history
-# Erase previous entries of command
-export HISTCONTROL=ignoredups:erasedups
+# History controls: a list of patterns, separated by colons (:), which can have
+# the following values:
+#
+#   ignorespace:
+#      lines beginning with a space are not entered into the history list.
+#
+#   ignoredups:
+#      lines matching the last history line are not entered.
+#
+#   ignoreboth:
+#       enables both ignorespace and ignoredups.
+#
+#   erasedups:
+#       all previous lines matching the current line are removed from the
+#       history list before the line is saved.
 
-# Ignore some controlling instructions
-export HISTIGNORE="[   ]*:&:bg:fg:exit"
+export HISTCONTROL="ignoreboth:erasedups"
+
+# Ignore the listed commands
+export HISTIGNORE="exit:[bf]g:reset:clear:cls:rm *:g add *:git add *:g rm *:g ci: git commit:g push: git push"
 
 # Append to the history file, don't overwrite it
 shopt -s histappend
