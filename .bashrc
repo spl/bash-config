@@ -191,6 +191,14 @@ function first_valid_dir()
     return -1  # failure
 }
 
+# Clear the screen and scrollback buffer of the terminal
+# https://stackoverflow.com/a/1348624/545794
+# https://apple.stackexchange.com/a/318217/62339
+function cls()
+{
+    printf '\033[2J\033[3J\033[1;1H'
+}
+
 #-----------------------------------------------------------------------------
 # Path
 #-----------------------------------------------------------------------------
