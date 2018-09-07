@@ -396,8 +396,23 @@ GIT_PS1_SHOWUPSTREAM="auto"
 # Set editor
 [[ -x /usr/bin/vim ]] && export EDITOR=vim
 
-# less options
-export LESS=FRSX
+# less options:
+#   -F or --quit-if-one-screen
+#      Causes less to automatically exit if the entire file can be displayed on
+#      the first screen.
+#
+#   -R or --RAW-CONTROL-CHARS
+#      Like -r, but only ANSI "color" escape sequences are output in "raw" form.
+#
+#   -S or --chop-long-lines
+#      Causes lines longer than the screen width to be chopped (truncated)
+#      rather than wrapped.
+#
+#   -X or --no-init
+#      Disables sending the termcap initialization and deinitialization strings
+#      to the terminal. This also means that mouse scrolling does not work, so
+#      I'm not enabling it.
+export LESS=FRS
 
 # ack pager
 export ACK_PAGER=less
