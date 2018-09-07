@@ -410,8 +410,15 @@ GIT_PS1_SHOWUPSTREAM="auto"
 #
 #   -X or --no-init
 #      Disables sending the termcap initialization and deinitialization strings
-#      to the terminal. This also means that mouse scrolling does not work, so
-#      I'm not enabling it.
+#      to the terminal.
+#
+# Note:
+#   Using -F without -X was an issue in versions of less < 530. Either you got
+#   --quit-if-one-screen or --no-init, not both for files that fit in one
+#   screen. Since -X prevents mouse scrolling, I don't use it. But this means I
+#   should use a version of less >= 530.
+#
+#   See https://unix.stackexchange.com/a/432254/137060
 export LESS=FRS
 
 # ack pager
