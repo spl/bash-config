@@ -518,7 +518,7 @@ append_to_infopath "${HOME}/info"
 
 # Reset PATH for root
 if [[ "${USER}" == "root" ]]; then
-    PATH=/sbin:/usr/sbin:${HOME}/bin:/usr/local/bin:/bin:/usr/bin
+    PATH=/sbin:/usr/sbin:${HOME}/bin:/usr/local/sbin:/usr/local/bin:/bin:/usr/bin
 fi
 
 export PATH MANPATH INFOPATH
