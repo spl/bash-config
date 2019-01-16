@@ -208,6 +208,7 @@ PATH="/bin"
 
 # Add directories
 prepend_to_path "/usr/bin"
+prepend_to_path "/usr/local/sbin"
 prepend_to_path "/usr/local/bin"
 
 #-----------------------------------------------------------------------------
