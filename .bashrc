@@ -148,8 +148,8 @@ function append_to_infopath()
 # Source script if it exists
 function source_script()
 {
-    if [[ -f "${1}" ]]; then
-        source ${1}
+    if [[ -r "${1}" ]]; then
+        source "${1}"
     fi
 }
 
