@@ -490,6 +490,9 @@ if type __git_complete &> /dev/null; then
     __git_complete g __git_main
 fi
 
+# Travis gem bash completion
+source_script $HOME/.travis/travis.sh
+
 # Google Chrome
 [[ -d "/Applications/Google Chrome.app" ]] && alias chrome='open -a Google\ Chrome'
 
